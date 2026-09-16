@@ -14,6 +14,7 @@ class Question extends Model
     protected $fillable = [
         'quiz_id',
         'question_text',
+        'meaning',
         'explanation',
         'points',
         'sort_order',

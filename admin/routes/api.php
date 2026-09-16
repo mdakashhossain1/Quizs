@@ -18,6 +18,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/google-login', [AuthController::class, 'googleLogin']);
     Route::post('/send-otp', [AuthController::class, 'sendOtp']);
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });
 
 // Public Quiz & Content Browsing

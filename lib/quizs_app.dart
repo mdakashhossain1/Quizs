@@ -8,7 +8,6 @@ import 'screens/home_screen.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/notifications_screen.dart';
-import 'screens/profile_screen.dart';
 import 'screens/question_screen.dart';
 import 'screens/results_screen.dart';
 import 'screens/selection_screen.dart';
@@ -60,7 +59,11 @@ class QuizsApp extends StatelessWidget {
             '/signin' || '/login' => const SignInScreen(),
             '/forgot-password' => const ForgotPasswordScreen(),
             '/verify' || '/verify-code' => VerifyCodeScreen(
-                email: settings.arguments is String ? settings.arguments as String : null,
+                email: settings.arguments is VerifyCodeArgs
+                    ? (settings.arguments as VerifyCodeArgs).email
+                    : (settings.arguments is String ? settings.arguments as String : null),
+                isPasswordReset: settings.arguments is VerifyCodeArgs &&
+                    (settings.arguments as VerifyCodeArgs).isPasswordReset,
               ),
             '/question' => QuestionScreen(
                 topic: settings.arguments is QuizTopic ? settings.arguments as QuizTopic : null,

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
-import '../services/quiz_repository.dart';
+import '../models/question_model.dart';
+import '../services/quiz_api_service.dart';
 import '../widgets/design_widgets.dart';
 import '../widgets/quiz_bottom_nav.dart';
 import '../widgets/shimmer_loading.dart';
@@ -25,39 +26,62 @@ class SelectionScreen extends StatefulWidget {
 }
 
 class _SelectionScreenState extends State<SelectionScreen> {
-  late bool _isLoading;
+  bool _isLoading = true;
+  bool _hasError = false;
+  List<QuizTopic> _topics = const [];
+
+  bool get _isTopicView => widget.mathematics || widget.categoryKey != null;
+
+  String get _effectiveKey =>
+      widget.categoryKey ?? (widget.mathematics ? 'math' : 'math');
 
   @override
   void initState() {
     super.initState();
-    _isLoading = !QuizRepository.instance.isLoaded;
-    if (_isLoading) {
-      QuizRepository.instance.initialize().then((_) {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+    AppLanguage.instance.addListener(_loadTopics);
+    _loadTopics();
+  }
+
+  @override
+  void dispose() {
+    AppLanguage.instance.removeListener(_loadTopics);
+    super.dispose();
+  }
+
+  Future<void> _loadTopics() async {
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+    try {
+      final isHindi = AppLanguage.instance.isHindi;
+      final topics = _isTopicView
+          ? await QuizApiService.instance.getTopicsForCategory(
+              categoryKey: _effectiveKey,
+              isHindi: isHindi,
+            )
+          : await QuizApiService.instance.getTrendingTopics(isHindi: isHindi);
+      if (!mounted) return;
+      setState(() {
+        _topics = topics;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _hasError = true;
+        _isLoading = false;
       });
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final isHindi = AppLanguage.instance.isHindi;
-    final isTopicView = widget.mathematics || widget.categoryKey != null;
+    final isTopicView = _isTopicView;
     final displayBottomNav = widget.showBottomNav ?? !isTopicView;
-
-    final effectiveKey =
-        widget.categoryKey ?? (widget.mathematics ? 'math' : 'math');
-    final topics = isTopicView
-        ? QuizRepository.instance.getTopicsForCategory(
-            categoryKey: effectiveKey,
-            isHindi: isHindi,
-          )
-        : QuizRepository.instance.getTrendingTopics(isHindi: isHindi);
+    final effectiveKey = _effectiveKey;
+    final topics = _topics;
 
     final String headingText;
     if (widget.title != null) {
@@ -76,10 +100,15 @@ class _SelectionScreenState extends State<SelectionScreen> {
 
     final double startY = isTopicView ? 218.0 : 472.0;
     const double cardSpacing = 90.0;
-    final int displayCount =
-        isTopicView ? (_isLoading ? 6 : topics.length) : 4;
+    final int displayCount = _hasError
+        ? 0
+        : isTopicView
+            ? (_isLoading ? 6 : topics.length)
+            : 4;
 
-    final double lastCardBottom = startY + (displayCount * cardSpacing);
+    final double errorBlockHeight = _hasError ? 140.0 : 0.0;
+    final double lastCardBottom =
+        startY + (displayCount * cardSpacing) + errorBlockHeight;
     final double panelHeight = isTopicView
         ? (lastCardBottom - 192.0 + 36.0)
         : (lastCardBottom - 187.0 + 26.0);
@@ -135,6 +164,43 @@ class _SelectionScreenState extends State<SelectionScreen> {
             weight: FontWeight.w800,
           ),
         ],
+        if (_hasError)
+          at(
+            24,
+            startY,
+            364,
+            errorBlockHeight,
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.wifi_off_rounded, color: QuizColors.purple, size: 32),
+                const SizedBox(height: 10),
+                Text(
+                  'Could not load quizzes. Check your connection and try again.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 12.5,
+                    color: Color(0xFF757575),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: _loadTopics,
+                  child: Text(
+                    'Retry',
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: QuizColors.purple,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         for (var i = 0; i < displayCount; i++) ...[
           at(
             22,
@@ -157,19 +223,16 @@ class _SelectionScreenState extends State<SelectionScreen> {
                     progress: i < topics.length
                         ? topics[i].progress
                         : (0.3 + i * 0.15),
-                    onTap: () {
-                      final selectedTopic =
-                          i < topics.length ? topics[i] : null;
-                      Navigator.pushNamed(context, '/question',
-                          arguments: selectedTopic);
-                    },
+                    onTap: i < topics.length
+                        ? () {
+                            Navigator.pushNamed(context, '/question',
+                                arguments: topics[i]);
+                          }
+                        : null,
                   ),
           ),
         ],
       ],
     );
-
   }
 }
-
-

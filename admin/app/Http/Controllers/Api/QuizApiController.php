@@ -31,13 +31,14 @@ class QuizApiController extends Controller
     }
 
     /**
-     * Get quizzes for a specific category.
+     * Get quizzes for a specific category, filtered by language.
      */
-    public function quizzesByCategory(int $categoryId): JsonResponse
+    public function quizzesByCategory(Request $request, int $categoryId): JsonResponse
     {
         $category = Category::where('is_active', true)->findOrFail($categoryId);
 
         $quizzes = Quiz::where('category_id', $category->id)
+            ->where('language', $request->query('language', 'en'))
             ->where('is_active', true)
             ->withCount('questions')
             ->orderBy('sort_order')
@@ -51,18 +52,17 @@ class QuizApiController extends Controller
     }
 
     /**
-     * Get quiz detail with questions and options (answers masked).
+     * Get full quiz detail with questions and options, including which
+     * option is correct. Answers aren't masked here since the client needs
+     * them for its own instant right/wrong feedback; scoring is still
+     * authoritatively recomputed server-side on submit.
      */
     public function quizDetail(int $id): JsonResponse
     {
         $quiz = Quiz::where('is_active', true)
             ->with(['category'])
             ->with(['questions' => function ($q) {
-                $q->orderBy('sort_order')
-                  ->with(['options' => function ($opt) {
-                      // Hide is_correct during gameplay
-                      $opt->select(['id', 'question_id', 'option_text']);
-                  }]);
+                $q->orderBy('sort_order')->with('options');
             }])
             ->findOrFail($id);
 

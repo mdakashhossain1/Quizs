@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
+import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../widgets/auth_widgets.dart';
 import '../widgets/design_widgets.dart';
@@ -38,7 +39,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _handleSaveChanges() async {
     final name = _nameController.text.trim();
-    final email = _emailController.text.trim();
     final newPassword = _newPasswordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
@@ -46,17 +46,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter your name'),
-          backgroundColor: QuizColors.purple,
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your email address'),
           backgroundColor: QuizColors.purple,
           duration: Duration(seconds: 2),
         ),
@@ -88,28 +77,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
 
     setState(() => _isSaving = true);
+    try {
+      await AuthService.instance.updateProfile(name: name);
 
-    await AuthService.instance.updateProfile(
-      name: name,
-      email: email,
-    );
+      if (newPassword.isNotEmpty) {
+        await AuthService.instance.changePassword(newPassword: newPassword);
+      }
 
-    if (newPassword.isNotEmpty) {
-      await AuthService.instance.changePassword(newPassword: newPassword);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.t('profile_updated_success')),
+          backgroundColor: const Color(0xFF10BA65),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      Navigator.of(context).pop();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: QuizColors.purple,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
-
-    if (!mounted) return;
-    setState(() => _isSaving = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppStrings.t('profile_updated_success')),
-        backgroundColor: const Color(0xFF10BA65),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-
-    Navigator.of(context).pop();
   }
 
   void _handleDeleteAccount() {
@@ -269,7 +264,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 const SizedBox(height: 18),
 
-                // Email / ID Input
+                // Email / ID Input (read-only: the backend has no endpoint to change it)
                 AuthInputField(
                   label: AppStrings.t('email_label'),
                   hintText: AppStrings.t('email_placeholder'),
@@ -277,6 +272,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   prefixIcon: Icons.mail_outline_rounded,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
+                  enabled: false,
                 ),
                 const SizedBox(height: 28),
 

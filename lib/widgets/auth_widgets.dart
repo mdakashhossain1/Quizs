@@ -82,6 +82,7 @@ class AuthInputField extends StatefulWidget {
     this.keyboardType,
     this.textInputAction,
     this.focusNode,
+    this.enabled = true,
   });
 
   final String label;
@@ -92,6 +93,7 @@ class AuthInputField extends StatefulWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final FocusNode? focusNode;
+  final bool enabled;
 
   @override
   State<AuthInputField> createState() => _AuthInputFieldState();
@@ -146,7 +148,11 @@ class _AuthInputFieldState extends State<AuthInputField> {
             duration: const Duration(milliseconds: 180),
             height: 50,
             decoration: BoxDecoration(
-              color: _isFocused ? Colors.white : const Color(0xFFF6F1FA),
+              color: !widget.enabled
+                  ? const Color(0xFFEFEFEF)
+                  : _isFocused
+                      ? Colors.white
+                      : const Color(0xFFF6F1FA),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: _isFocused
@@ -174,6 +180,7 @@ class _AuthInputFieldState extends State<AuthInputField> {
                   child: TextField(
                     controller: widget.controller,
                     focusNode: _focusNode,
+                    enabled: widget.enabled,
                     obscureText: widget.isPassword ? _obscureText : false,
                     keyboardType: widget.keyboardType,
                     textInputAction: widget.textInputAction,

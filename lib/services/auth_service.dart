@@ -131,6 +131,25 @@ class AuthService extends ChangeNotifier {
     await ApiClient.instance.post('/auth/send-otp', body: {'email': email});
   }
 
+  /// Requests a password-reset OTP for an existing account (verified or not).
+  Future<void> forgotPassword({required String email}) async {
+    await ApiClient.instance.post('/auth/forgot-password', body: {'email': email});
+  }
+
+  /// Confirms a password-reset OTP and sets a new password, logging the user in.
+  Future<void> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    final data = await ApiClient.instance.post('/auth/reset-password', body: {
+      'email': email,
+      'code': code,
+      'new_password': newPassword,
+    });
+    await _applySession(data);
+  }
+
   Future<void> _applySession(Map<String, dynamic> data) async {
     final token = data['token'] as String?;
     final user = data['user'] as Map<String, dynamic>?;

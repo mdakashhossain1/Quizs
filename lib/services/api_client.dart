@@ -23,14 +23,20 @@ class ApiClient {
   ApiClient._();
   static final ApiClient instance = ApiClient._();
 
-  // Laravel app lives in admin/ and is served by XAMPP under /Quizs/admin/public.
+  // Laravel app lives in admin/ and is served by XAMPP directly from that
+  // folder (admin/index.php + admin/.htaccess route into public/ internally,
+  // the same layout used on shared hosting) — no /public in the URL.
+  // These are plain JSON endpoints (no Livewire involved), so the nested
+  // path is fine here — the admin panel's Livewire login needed its own
+  // vhost (quizs-admin.local), but that's unrelated to this API and can't
+  // be resolved from the Android emulator anyway.
   // 10.0.2.2 is how the Android emulator reaches the host machine's localhost;
   // a physical device needs the host's LAN IP instead.
   static String get baseUrl {
     if (!kIsWeb && Platform.isAndroid) {
-      return 'http://10.0.2.2/Quizs/admin/public/api';
+      return 'http://10.0.2.2/Quizs/admin/api';
     }
-    return 'http://localhost/Quizs/admin/public/api';
+    return 'http://localhost/Quizs/admin/api';
   }
 
   String? _token;

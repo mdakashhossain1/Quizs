@@ -6,10 +6,20 @@ import '../services/auth_service.dart';
 import '../widgets/auth_widgets.dart';
 import '../widgets/design_widgets.dart';
 
+/// Route arguments for [VerifyCodeScreen], distinguishing the signup email
+/// verification flow from the forgot-password reset flow.
+class VerifyCodeArgs {
+  const VerifyCodeArgs({required this.email, this.isPasswordReset = false});
+
+  final String email;
+  final bool isPasswordReset;
+}
+
 class VerifyCodeScreen extends StatefulWidget {
-  const VerifyCodeScreen({super.key, this.email});
+  const VerifyCodeScreen({super.key, this.email, this.isPasswordReset = false});
 
   final String? email;
+  final bool isPasswordReset;
 
   @override
   State<VerifyCodeScreen> createState() => _VerifyCodeScreenState();
@@ -19,6 +29,8 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   final List<TextEditingController> _controllers =
       List.generate(4, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isVerifying = false;
   bool _isResending = false;
 
@@ -30,63 +42,75 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
     for (final f in _focusNodes) {
       f.dispose();
     }
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _handleVerify(String email) async {
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: QuizColors.purple,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _handleVerify(String email, bool isPasswordReset) async {
     final code = _controllers.map((c) => c.text).join();
     if (code.length < 4) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter the 4-digit code'),
-          backgroundColor: QuizColors.purple,
-          duration: Duration(seconds: 2),
-        ),
-      );
+      _showMessage('Please enter the 4-digit code');
       return;
+    }
+
+    String? newPassword;
+    if (isPasswordReset) {
+      newPassword = _newPasswordController.text.trim();
+      final confirmPassword = _confirmPasswordController.text.trim();
+      if (newPassword.length < 6) {
+        _showMessage('Password must be at least 6 characters');
+        return;
+      }
+      if (newPassword != confirmPassword) {
+        _showMessage('Passwords do not match');
+        return;
+      }
     }
 
     setState(() => _isVerifying = true);
     try {
-      await AuthService.instance.verifyOtp(email: email, code: code);
+      if (isPasswordReset) {
+        await AuthService.instance.resetPassword(
+          email: email,
+          code: code,
+          newPassword: newPassword!,
+        );
+      } else {
+        await AuthService.instance.verifyOtp(email: email, code: code);
+      }
       if (!mounted) return;
       Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
     } on ApiException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message),
-          backgroundColor: QuizColors.purple,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      _showMessage(e.message);
     } finally {
       if (mounted) setState(() => _isVerifying = false);
     }
   }
 
-  void _handleResend(String email) async {
+  void _handleResend(String email, bool isPasswordReset) async {
     if (_isResending) return;
     setState(() => _isResending = true);
     try {
-      await AuthService.instance.resendOtp(email: email);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('A fresh 4-digit verification code has been sent!'),
-          backgroundColor: QuizColors.purple,
-          duration: Duration(seconds: 2),
-        ),
-      );
+      if (isPasswordReset) {
+        await AuthService.instance.forgotPassword(email: email);
+      } else {
+        await AuthService.instance.resendOtp(email: email);
+      }
+      _showMessage('A fresh 4-digit verification code has been sent!');
     } on ApiException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message),
-          backgroundColor: QuizColors.purple,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      _showMessage(e.message);
     } finally {
       if (mounted) setState(() => _isResending = false);
     }
@@ -94,9 +118,14 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final routeArgs = ModalRoute.of(context)?.settings.arguments;
     final emailArg = widget.email ??
-        (ModalRoute.of(context)?.settings.arguments as String?) ??
+        (routeArgs is VerifyCodeArgs
+            ? routeArgs.email
+            : (routeArgs is String ? routeArgs : null)) ??
         '';
+    final isPasswordReset = widget.isPasswordReset ||
+        (routeArgs is VerifyCodeArgs && routeArgs.isPasswordReset);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -241,7 +270,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                         ),
                         const SizedBox(width: 5),
                         GestureDetector(
-                          onTap: () => _handleResend(emailArg),
+                          onTap: () => _handleResend(emailArg, isPasswordReset),
                           child: Text(
                             AppStrings.t('resend_code'),
                             style: const TextStyle(
@@ -255,12 +284,35 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                         ),
                       ],
                     ),
+
+                    if (isPasswordReset) ...[
+                      const SizedBox(height: 28),
+                      AuthInputField(
+                        label: AppStrings.t('new_password'),
+                        hintText: 'Enter new password',
+                        controller: _newPasswordController,
+                        isPassword: true,
+                        prefixIcon: Icons.lock_reset_rounded,
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: 14),
+                      AuthInputField(
+                        label: AppStrings.t('confirm_password'),
+                        hintText: 'Confirm new password',
+                        controller: _confirmPasswordController,
+                        isPassword: true,
+                        prefixIcon: Icons.check_circle_outline_rounded,
+                        textInputAction: TextInputAction.done,
+                      ),
+                    ],
                     const SizedBox(height: 36),
 
-                    // Verify Button
+                    // Verify / Reset Button
                     AuthPrimaryButton(
-                      text: AppStrings.t('verify_btn'),
-                      onPressed: () => _handleVerify(emailArg),
+                      text: isPasswordReset
+                          ? AppStrings.t('reset_password_btn')
+                          : AppStrings.t('verify_btn'),
+                      onPressed: () => _handleVerify(emailArg, isPasswordReset),
                       isLoading: _isVerifying,
                     ),
                   ],

@@ -136,18 +136,8 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (! $user->otp_code || ! $user->otp_expires_at || $user->otp_expires_at->isPast()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This code has expired. Please request a new one.',
-            ], 422);
-        }
-
-        if (! Hash::check($request->code, $user->otp_code)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid verification code.',
-            ], 422);
+        if ($error = $this->checkOtp($user, $request->code)) {
+            return response()->json(['success' => false, 'message' => $error], 422);
         }
 
         $user->forceFill([
@@ -164,6 +154,74 @@ class AuthController extends Controller
             'token' => $token,
             'user' => $user,
         ]);
+    }
+
+    /**
+     * Request a password-reset OTP for an existing account.
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email', 'exists:users,email'],
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+        $this->issueOtp($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'A password reset code has been sent to your email.',
+        ]);
+    }
+
+    /**
+     * Confirm a password-reset OTP and set a new password, logging the user in.
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email', 'exists:users,email'],
+            'code' => ['required', 'string'],
+            'new_password' => ['required', 'string', 'min:6'],
+        ]);
+
+        $user = User::where('email', $validated['email'])->first();
+
+        if ($error = $this->checkOtp($user, $validated['code'])) {
+            return response()->json(['success' => false, 'message' => $error], 422);
+        }
+
+        $user->forceFill([
+            'password' => Hash::make($validated['new_password']),
+            'otp_code' => null,
+            'otp_expires_at' => null,
+        ])->save();
+
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password reset successfully.',
+            'token' => $token,
+            'user' => $user,
+        ]);
+    }
+
+    /**
+     * Validates a submitted OTP code against the stored hash and expiry,
+     * returning a user-facing error message, or null when it checks out.
+     */
+    private function checkOtp(User $user, string $code): ?string
+    {
+        if (! $user->otp_code || ! $user->otp_expires_at || $user->otp_expires_at->isPast()) {
+            return 'This code has expired. Please request a new one.';
+        }
+
+        if (! Hash::check($code, $user->otp_code)) {
+            return 'Invalid verification code.';
+        }
+
+        return null;
     }
 
     /**

@@ -16,11 +16,11 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Admin User
-        $admin = User::firstOrCreate(
+        $admin = User::updateOrCreate(
             ['email' => 'admin@quizs.com'],
             [
                 'name' => 'Super Admin',
-                'password' => bcrypt('password123'),
+                'password' => 'password123',
                 'role' => 'admin',
                 'streak' => 12,
                 'score' => 1200,
@@ -29,11 +29,11 @@ class DatabaseSeeder extends Seeder
         );
 
         // 2. Mobile / Test User
-        $user = User::firstOrCreate(
+        $user = User::updateOrCreate(
             ['email' => 'user@quizs.com'],
             [
                 'name' => 'Alex Johnson',
-                'password' => bcrypt('password123'),
+                'password' => 'password123',
                 'role' => 'user',
                 'streak' => 4,
                 'score' => 350,

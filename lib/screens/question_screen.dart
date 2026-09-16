@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../ads/test_ads.dart';
 import '../l10n/app_strings.dart';
 import '../models/question_model.dart';
+import '../services/quiz_api_service.dart';
 import '../widgets/design_widgets.dart';
 import 'results_screen.dart';
 
@@ -27,6 +28,9 @@ class QuestionScreen extends StatefulWidget {
 
 class _QuestionScreenState extends State<QuestionScreen> {
   late List<Question> _questions;
+  int? _quizId;
+  bool _isLoadingRemote = false;
+  bool _remoteLoadError = false;
   int _currentIndex = 0;
   int? _selectedOption;
   bool _hasAnswered = false;
@@ -40,13 +44,42 @@ class _QuestionScreenState extends State<QuestionScreen> {
   @override
   void initState() {
     super.initState();
-    _initQuiz();
+    final remoteQuizId = widget.topic?.remoteQuizId;
+    if (remoteQuizId != null && (widget.topic?.questions.isEmpty ?? true)) {
+      _quizId = remoteQuizId;
+      _questions = const [];
+      _loadRemoteQuestions(remoteQuizId);
+    } else {
+      _initQuiz();
+    }
   }
 
   @override
   void dispose() {
     _countdownTimer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _loadRemoteQuestions(int quizId) async {
+    setState(() {
+      _isLoadingRemote = true;
+      _remoteLoadError = false;
+    });
+    try {
+      final questions = await QuizApiService.instance.fetchQuizQuestions(quizId);
+      if (!mounted) return;
+      setState(() {
+        _questions = questions.isNotEmpty ? questions : [_fallbackQuestion];
+        _isLoadingRemote = false;
+      });
+    } catch (e) {
+      debugPrint('Quiz load note: $e');
+      if (!mounted) return;
+      setState(() {
+        _remoteLoadError = true;
+        _isLoadingRemote = false;
+      });
+    }
   }
 
   void _initQuiz() {
@@ -200,13 +233,49 @@ class _QuestionScreenState extends State<QuestionScreen> {
     }
   }
 
-  void _finishQuiz() {
+  void _finishQuiz() async {
     _countdownTimer?.cancel();
-    final total = _questions.length;
-    final right = _correctCount;
-    final wrong = _wrongCount > 0 ? _wrongCount : (total - right);
-    final pct = total > 0 ? ((right / total) * 100).round() : 0;
+    var total = _questions.length;
+    var right = _correctCount;
+    var wrong = _wrongCount > 0 ? _wrongCount : (total - right);
+    var pct = total > 0 ? ((right / total) * 100).round() : 0;
 
+    final quizId = _quizId;
+    if (quizId != null &&
+        _questions.isNotEmpty &&
+        _questions.every((q) => q.remoteId != null)) {
+      final answers = <int, int>{};
+      for (var i = 0; i < _questions.length; i++) {
+        final selectedIndex = _userAnswers[i];
+        final optionIds = _questions[i].remoteOptionIds;
+        if (selectedIndex != null &&
+            optionIds != null &&
+            selectedIndex < optionIds.length) {
+          answers[_questions[i].remoteId!] = optionIds[selectedIndex];
+        }
+      }
+
+      try {
+        final result = await QuizApiService.instance.submitQuiz(
+          quizId: quizId,
+          answers: answers,
+        );
+        final serverTotal = (result['total_questions'] as num?)?.toInt();
+        final serverRight = (result['correct_answers'] as num?)?.toInt();
+        if (serverTotal != null && serverRight != null) {
+          total = serverTotal;
+          right = serverRight;
+          wrong = serverTotal - serverRight;
+          pct = (result['percentage'] as num?)?.round() ?? pct;
+        }
+      } catch (e) {
+        // Network dropped right at the end: still show the locally tallied
+        // result rather than losing the user's finished quiz.
+        debugPrint('Quiz submit note: $e');
+      }
+    }
+
+    if (!mounted) return;
     Navigator.pushNamed(
       context,
       '/results',
@@ -301,6 +370,45 @@ class _QuestionScreenState extends State<QuestionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingRemote) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: CircularProgressIndicator(color: QuizColors.purple),
+        ),
+      );
+    }
+
+    if (_remoteLoadError) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.wifi_off_rounded, color: QuizColors.purple, size: 40),
+              const SizedBox(height: 12),
+              const Text(
+                'Could not load this quiz. Check your connection and try again.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 13.5, color: Color(0xFF757575)),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => _loadRemoteQuestions(_quizId!),
+                style: ElevatedButton.styleFrom(backgroundColor: QuizColors.purple),
+                child: const Text('Retry', style: TextStyle(color: Colors.white)),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Go back'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final isExpl = widget.explanation || _hasAnswered;
     final currentQ = _currentQuestion;
     final options = currentQ.options;

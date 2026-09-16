@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
+import '../services/api_client.dart';
+import '../services/auth_service.dart';
 import '../widgets/auth_widgets.dart';
 import '../widgets/design_widgets.dart';
+import 'verify_code_screen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -13,7 +16,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
-  final bool _isLoading = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -21,7 +24,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  void _handleSendCode() {
+  void _handleSendCode() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -34,7 +37,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       return;
     }
 
-    Navigator.of(context).pushNamed('/verify-code', arguments: email);
+    setState(() => _isLoading = true);
+    try {
+      await AuthService.instance.forgotPassword(email: email);
+      if (!mounted) return;
+      Navigator.of(context).pushNamed(
+        '/verify-code',
+        arguments: VerifyCodeArgs(email: email, isPasswordReset: true),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: QuizColors.purple,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override

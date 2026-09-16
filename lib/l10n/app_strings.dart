@@ -178,6 +178,7 @@ class AppStrings {
       'dont_receive_otp': 'Don\'t receive OTP?',
       'resend_code': 'Resend code',
       'verify_btn': 'Verify',
+      'reset_password_btn': 'Reset Password',
       // Edit Profile & Account Management
       'save_changes': 'Save Changes',
       'change_password': 'Change Password',
@@ -330,6 +331,7 @@ class AppStrings {
       'dont_receive_otp': 'ओटीपी नहीं मिला?',
       'resend_code': 'कोड पुनः भेजें',
       'verify_btn': 'सत्यापित करें',
+      'reset_password_btn': 'पासवर्ड रीसेट करें',
       // Edit Profile & Account Management
       'save_changes': 'बदलाव सहेजें',
       'change_password': 'पासवर्ड बदलें',
