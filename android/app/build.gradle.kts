@@ -3,10 +3,12 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("com.android.application")
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
-    namespace = "com.example.quizs"
+    namespace = "com.quizs.arknox"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -16,7 +18,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.quizs"
+        applicationId = "com.quizs.arknox"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -27,6 +29,10 @@ android {
         release {
             signingConfig = signingConfigs.getByName("debug")
         }
+    }
+
+    firebaseCrashlytics {
+        nativeSymbolUploadEnabled = true
     }
 }
 

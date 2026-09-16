@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../ads/banner_ad_slot.dart';
+import '../l10n/app_strings.dart';
 
 abstract final class QuizColors {
   static const purple = Color(0xFF53009C);
@@ -22,6 +24,8 @@ class DesignCanvas extends StatelessWidget {
     this.adTop = 820,
     this.adAfter = 0,
     this.adBefore,
+    this.darkBanner,
+    this.bottomNav,
   });
   final List<Widget> children;
   final Color color;
@@ -29,102 +33,144 @@ class DesignCanvas extends StatelessWidget {
   final double adTop;
   final double adAfter;
   final double? adBefore;
+  final bool? darkBanner;
+  final Widget? bottomNav;
 
   @override
   Widget build(BuildContext context) {
     final darkHeader =
         ThemeData.estimateBrightnessForColor(topColor) == Brightness.dark;
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: darkHeader
-            ? Brightness.light
-            : Brightness.dark,
-        statusBarBrightness: darkHeader ? Brightness.dark : Brightness.light,
-        systemStatusBarContrastEnforced: false,
-        systemNavigationBarColor: QuizColors.darkPurple,
-        systemNavigationBarIconBrightness: Brightness.light,
-      ),
-      child: Scaffold(
-        body: Stack(
-          children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: MediaQuery.paddingOf(context).top,
-              child: ColoredBox(color: topColor),
-            ),
-            SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final width = math.min(412.0, constraints.maxWidth);
-                  final scale = width / 412;
-                  var bannerTop = math.max(adTop * scale, adAfter * scale + 12);
-                  if (adBefore != null) {
-                    bannerTop = math.min(
-                      bannerTop,
-                      adBefore! * scale - BannerAdSlot.height - 12,
-                    );
-                  }
-                  final height = math.max(
-                    917 * scale,
-                    bannerTop + BannerAdSlot.height + 20,
-                  );
-                  return Align(
-                    alignment: Alignment.topCenter,
-                    child: SizedBox(
-                      width: width,
-                      child: SingleChildScrollView(
-                        child: RepaintBoundary(
-                          key: const ValueKey('design-canvas'),
-                          child: SizedBox(
-                            width: width,
-                            height: height,
-                            child: ColoredBox(
-                              color: color,
-                              child: Stack(
-                                children: [
-                                  Positioned(
-                                    top: 0,
-                                    left: 0,
-                                    width: width,
-                                    height: 917 * scale,
-                                    child: FittedBox(
-                                      fit: BoxFit.fill,
-                                      child: SizedBox(
-                                        width: 412,
-                                        height: 917,
-                                        child: Stack(
-                                          clipBehavior: Clip.hardEdge,
-                                          children: children,
+    return ListenableBuilder(
+      listenable: AppLanguage.instance,
+      builder: (context, _) => AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: darkHeader
+              ? Brightness.light
+              : Brightness.dark,
+          statusBarBrightness: darkHeader ? Brightness.dark : Brightness.light,
+          systemStatusBarContrastEnforced: false,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: darkHeader
+              ? Brightness.light
+              : Brightness.dark,
+          systemNavigationBarContrastEnforced: false,
+        ),
+        child: Scaffold(
+          extendBodyBehindAppBar: true,
+          extendBody: true,
+          backgroundColor: color,
+          body: SafeArea(
+            top: false,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = math.min(412.0, constraints.maxWidth);
+              final scale = width / 412;
+              final viewportHeight = constraints.maxHeight;
+              var bannerTop = math.max(adTop * scale, adAfter * scale + 12);
+              if (adBefore != null) {
+                bannerTop = math.min(
+                  bannerTop,
+                  adBefore! * scale - BannerAdSlot.height - 12,
+                );
+              }
+              final virtualCanvasHeight =
+                  math.max(917.0, (adAfter > 0 ? (adAfter + 80.0) : 917.0));
+              final contentHeight = math.max(
+                virtualCanvasHeight * scale,
+                bannerTop + BannerAdSlot.height + 20,
+              );
+              final canvasHeight = math.max(contentHeight, viewportHeight);
+
+              return Align(
+                alignment: Alignment.topCenter,
+                child: SizedBox(
+                  width: width,
+                  height: canvasHeight,
+                  child: RepaintBoundary(
+                    key: const ValueKey('design-canvas'),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: SingleChildScrollView(
+                            padding: EdgeInsets.only(
+                              bottom: bottomNav != null ? (76 * scale) : 0,
+                            ),
+                            child: SizedBox(
+                              width: width,
+                              height: contentHeight,
+                              child: ColoredBox(
+                                color: color,
+                                child: Stack(
+                                  children: [
+                                    Positioned(
+                                      top: 0,
+                                      left: 0,
+                                      width: width,
+                                      height: virtualCanvasHeight * scale,
+                                      child: FittedBox(
+                                        fit: BoxFit.fill,
+                                        child: SizedBox(
+                                          width: 412,
+                                          height: virtualCanvasHeight,
+                                          child: Stack(
+                                            clipBehavior: Clip.none,
+                                            children: children,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  Positioned(
-                                    left: 0,
-                                    right: 0,
-                                    top: bannerTop,
-                                    height: BannerAdSlot.height,
-                                    child: const BannerAdSlot(),
-                                  ),
-                                ],
+                                    Positioned(
+                                      left: 0,
+                                      right: 0,
+                                      top: bannerTop,
+                                      height: BannerAdSlot.height,
+                                      child: BannerAdSlot(
+                                        isDark: darkBanner ??
+                                            (color == QuizColors.darkPurple ||
+                                                topColor ==
+                                                    const Color(0xFF31005C) ||
+                                                ThemeData
+                                                        .estimateBrightnessForColor(
+                                                          color,
+                                                        ) ==
+                                                    Brightness.dark),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
+                        if (bottomNav != null)
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: math.max(14.0, 18.0 * scale),
+                            child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: SizedBox(
+                                width: 384 * scale,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: bottomNav!,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                  );
-                },
-              ),
-            ),
-          ],
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 Widget at(double x, double y, double width, double height, Widget child) =>
@@ -278,7 +324,7 @@ Widget backButton(
   48,
   48,
   DesignAction(
-    label: 'Back',
+    label: AppStrings.t('back'),
     onTap: () {
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
@@ -504,54 +550,256 @@ List<Widget> categories(
   BuildContext context,
   double y, {
   bool home = false,
-}) => [
-  for (var i = 0; i < 4; i++) ...[
-    at((home ? 43 : 41) + i * 87.6, y, 67.39, 67.39, CategoryIcon(i)),
-    label(
-      ['Science', 'Maths', 'Gk', 'Evs'][i],
-      (home ? 36 : 34) + i * 87.6,
-      y + 74,
-      15,
-      color: QuizColors.purple,
-      weight: FontWeight.w500,
-      width: 82,
-      align: TextAlign.center,
-    ),
-    action(
-      context,
-      '${['Science', 'Maths', 'General knowledge', 'Environmental studies'][i]} quizzes',
-      '/mathematics',
-      (home ? 36 : 34) + i * 87.6,
-      y - 4,
-      82,
-      105,
-    ),
-  ],
-];
+}) {
+  final count = home ? 3 : 4;
+  final dx = home ? 130.3 : 87.6;
+  final iconStart = home ? 42.0 : 41.0;
+  final textStart = home ? 35.0 : 34.0;
+  return [
+    for (var i = 0; i < count; i++) ...[
+      at(iconStart + i * dx, y, 67.39, 67.39, CategoryIcon(i)),
+      label(
+        [
+          AppStrings.t('science'),
+          AppStrings.t('maths'),
+          AppStrings.t('gk'),
+          AppStrings.t('evs'),
+        ][i],
+        textStart + i * dx,
+        y + 74,
+        15,
+        color: QuizColors.purple,
+        weight: FontWeight.w500,
+        width: 82,
+        align: TextAlign.center,
+      ),
+      action(
+        context,
+        [
+          AppStrings.t('science_quizzes'),
+          AppStrings.t('maths_quizzes'),
+          AppStrings.t('gk_quizzes'),
+          AppStrings.t('evs_quizzes'),
+        ][i],
+        ['/science', '/mathematics', '/gk', '/science'][i],
+        textStart + i * dx,
+        y - 4,
+        82,
+        105,
+      ),
+    ],
+  ];
+}
 
 class QuizCard extends StatelessWidget {
-  const QuizCard({super.key});
+  const QuizCard({
+    super.key,
+    this.index = 1,
+    this.title,
+    this.questionCount,
+    this.playedCount = '320',
+    this.progress = 0.45,
+    this.onTap,
+  });
+
+  final int index;
+  final String? title;
+  final String? questionCount;
+  final String playedCount;
+  final double progress;
+  final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) => Stack(
-    children: [
-      panel(0, 0, 367, 80, const Color(0x26BF00FF), radius: 9),
-      panel(10, 11, 58, 58, QuizColors.purple, radius: 29),
-      label('1', 33, 20, 32, color: Colors.white, weight: FontWeight.w800),
-      label('Trigonometry', 78, 13, 20, weight: FontWeight.w800),
-      label('10 Questions', 78, 39, 10),
-      label(
-        '320',
-        317,
-        29,
-        12,
-        color: QuizColors.purple,
-        weight: FontWeight.w800,
+  Widget build(BuildContext context) {
+    final displayTitle = title ?? AppStrings.t('trigonometry');
+    final displayCount = questionCount ?? AppStrings.t('questions_count');
+    final progressWidth = (228 * progress.clamp(0.0, 1.0));
+
+    return Stack(
+      children: [
+        panel(0, 0, 367, 80, const Color(0x26BF00FF), radius: 9),
+        panel(10, 11, 58, 58, QuizColors.purple, radius: 29),
+        at(
+          10,
+          11,
+          58,
+          58,
+          Center(
+            child: Text(
+              '$index',
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                height: 1.0,
+              ),
+            ),
+          ),
+        ),
+        at(
+          78,
+          13,
+          228,
+          26,
+          Text(
+            displayTitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: displayTitle.length > 25
+                  ? 14.0
+                  : (displayTitle.length > 18 ? 15.0 : 16.5),
+              fontWeight: FontWeight.w800,
+              color: Colors.black,
+              height: 1.15,
+            ),
+          ),
+        ),
+        label(displayCount, 78, 39, 10),
+        Positioned(
+          left: 308,
+          top: 26,
+          width: 52,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                playedCount,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: QuizColors.purple,
+                  height: 1.1,
+                ),
+              ),
+              Text(
+                AppStrings.t('played_count'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 8,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.black,
+                  height: 1.1,
+                ),
+              ),
+            ],
+          ),
+        ),
+        panel(78, 61, 228, 4, Colors.white, radius: 22),
+        panel(78, 61, progressWidth, 4, QuizColors.purple, radius: 22),
+        if (index == 1)
+          at(
+            0,
+            0,
+            367,
+            80,
+            DesignAction(
+              label: AppStrings.t('open_trigo'),
+              onTap: onTap ?? () => Navigator.of(context).pushNamed('/question'),
+            ),
+          )
+        else
+          at(
+            0,
+            0,
+            367,
+            80,
+            DesignAction(
+              label: 'Open $displayTitle',
+              onTap: onTap ?? () => Navigator.of(context).pushNamed('/question'),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class AnimatedSection extends StatefulWidget {
+  const AnimatedSection({
+    super.key,
+    required this.child,
+    this.delay = Duration.zero,
+    this.duration = const Duration(milliseconds: 320),
+    this.offset = const Offset(0, 14),
+  });
+
+  final Widget child;
+  final Duration delay;
+  final Duration duration;
+  final Offset offset;
+
+  @override
+  State<AnimatedSection> createState() => _AnimatedSectionState();
+}
+
+class _AnimatedSectionState extends State<AnimatedSection>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fade;
+  late final Animation<Offset> _slide;
+  Timer? _delayTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: widget.duration,
+    );
+    _fade = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
+    _slide = Tween<Offset>(
+      begin: widget.offset,
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    ));
+
+    if (widget.delay == Duration.zero) {
+      _controller.forward();
+    } else {
+      _delayTimer = Timer(widget.delay, () {
+        if (mounted) _controller.forward();
+      });
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _delayTimer?.cancel();
+      _delayTimer = null;
+      _controller.value = 1.0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _delayTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _controller,
+    builder: (context, child) => Opacity(
+      opacity: _fade.value.clamp(0.0, 1.0),
+      child: Transform.translate(
+        offset: _slide.value,
+        child: child,
       ),
-      label('Played', 315, 43, 8, weight: FontWeight.w300),
-      panel(78, 61, 228, 4, Colors.white, radius: 22),
-      panel(78, 61, 103, 4, QuizColors.purple, radius: 22),
-      action(context, 'Open Trigonometry quiz', '/question', 0, 0, 367, 80),
-    ],
+    ),
+    child: widget.child,
   );
 }

@@ -2,17 +2,32 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_strings.dart';
 import '../widgets/design_widgets.dart';
 import '../widgets/illustration.dart';
+import '../widgets/quiz_bottom_nav.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => DesignCanvas(
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: AppLanguage.instance,
+    builder: (context, _) => DesignCanvas(
     adTop: 776,
     adBefore: 841,
     color: const Color(0xFFFCFAFE),
+    bottomNav: QuizBottomNav(
+      initialIndex: 0,
+      onTabSelected: (index) {
+        if (index == 1) {
+          Navigator.pushNamed(context, '/categories');
+        } else if (index == 2) {
+          Navigator.pushNamed(context, '/profile');
+        }
+      },
+
+    ),
     children: [
       at(
         188,
@@ -74,23 +89,18 @@ class HomeScreen extends StatelessWidget {
         48,
         DesignAction(
           label: 'Notifications',
-          onTap: () => showDialog<void>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Notifications'),
-              content: const Text('You’re all caught up.'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
-                ),
-              ],
-            ),
-          ),
+          onTap: () => Navigator.of(context).pushNamed('/notifications'),
         ),
       ),
       panel(48, 90, 318, 82, Colors.white, radius: 13),
-      label('Welcome', 71, 109, 15, family: 'Quicksand', lineHeight: 1.25),
+      label(
+        AppStrings.t('welcome'),
+        71,
+        109,
+        15,
+        family: 'Quicksand',
+        lineHeight: 1.25,
+      ),
       label(
         'Aman',
         66,
@@ -101,68 +111,91 @@ class HomeScreen extends StatelessWidget {
         lineHeight: 1.44,
       ),
       label(
-        'Level 32',
+        AppStrings.t('level_32'),
         252,
         113,
         24,
         weight: FontWeight.w800,
         color: const Color(0xFF8400B1),
       ),
-      at(47, 204, 139, 142, const _RankCard()),
-      at(227, 204, 139, 142, const _RankCard(achievement: true)),
-      action(context, 'Leaderboard', '/results', 47, 204, 139, 142),
-      action(context, 'Achievements', '/achievements', 227, 204, 139, 142),
+      at(
+        47,
+        204,
+        139,
+        142,
+        const AnimatedSection(
+          delay: Duration(milliseconds: 50),
+          child: _RankCard(),
+        ),
+      ),
+      at(
+        227,
+        204,
+        139,
+        142,
+        const AnimatedSection(
+          delay: Duration(milliseconds: 80),
+          child: _RankCard(achievement: true),
+        ),
+      ),
+      action(
+        context,
+        'Leaderboard',
+        '/results',
+        47,
+        204,
+        139,
+        142,
+      ),
+      action(
+        context,
+        'Achievements',
+        '/achievements',
+        227,
+        204,
+        139,
+        142,
+      ),
       label(
-        'Quiz Category',
+        AppStrings.t('quiz_category'),
         36,
         405,
         20,
         weight: FontWeight.w800,
         color: QuizColors.purple,
       ),
+      action(
+        context,
+        'Browse categories',
+        '/categories',
+        36,
+        405,
+        340,
+        30,
+      ),
       ...categories(context, 448, home: true),
-      at(37, 576, 337, 155, const _DailyChallenge()),
-      action(context, 'Join a Quiz', '/question', 37, 576, 337, 155),
       at(
-        15,
-        841,
-        384,
-        58,
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(29),
-            border: Border.all(color: const Color(0x0F000000), width: 0.3),
-            boxShadow: const [
-              BoxShadow(color: Color(0x40000000), offset: Offset(1, 2)),
-            ],
-          ),
+        37,
+        576,
+        337,
+        155,
+        const AnimatedSection(
+          delay: Duration(milliseconds: 140),
+          child: _DailyChallenge(),
         ),
       ),
-      panel(30, 850, 105, 39, const Color(0xFF6703BF), radius: 54),
-      asset('1-2_imgHome1.png', 43, 858, 22, 22, color: Colors.white),
-      label('Home', 71, 856, 16, weight: FontWeight.w600, color: Colors.white),
-      asset(
-        '1-2_imgDashboard21.png',
-        202,
-        853,
-        32,
-        32,
-        color: const Color(0x996900C5),
+      action(
+        context,
+        'Join a Quiz',
+        '/question',
+        37,
+        576,
+        337,
+        155,
       ),
-      asset(
-        '1-2_imgUser21.png',
-        333,
-        855,
-        28,
-        28,
-        color: const Color(0x996900C5),
-      ),
-      at(30, 845, 105, 48, DesignAction(label: 'Home', onTap: () {})),
-      action(context, 'Browse categories', '/categories', 182, 845, 72, 48),
-      action(context, 'Profile', '/achievements', 316, 845, 62, 48),
     ],
-  );
+  ),
+);
 }
 
 class _RankCard extends StatelessWidget {
@@ -270,7 +303,9 @@ class _RankCard extends StatelessWidget {
         ),
       ),
       label(
-        achievement ? 'ACHIVEMENT' : 'LEADERBOARD',
+        achievement
+            ? AppStrings.t('achievement')
+            : AppStrings.t('leaderboard'),
         achievement ? 31 : 27,
         67,
         12,
@@ -278,7 +313,7 @@ class _RankCard extends StatelessWidget {
         color: achievement ? Colors.black : Colors.white,
       ),
       label(
-        'RANK 70',
+        AppStrings.t('rank_70'),
         27,
         98,
         20,
@@ -336,7 +371,7 @@ class _DailyChallenge extends StatelessWidget {
           ),
         ),
         label(
-          'Daily\nChallenge',
+          AppStrings.t('daily_challenge'),
           36,
           31,
           24,
@@ -344,8 +379,22 @@ class _DailyChallenge extends StatelessWidget {
           color: Colors.white,
           lineHeight: .96,
         ),
-        panel(36, 100, 107, 26, Colors.white, radius: 13),
-        label('Join a Quiz', 45, 104, 15, family: 'DaysOne', lineHeight: 1.192),
+        panel(
+          36,
+          100,
+          AppLanguage.instance.isHindi ? 136 : 107,
+          26,
+          Colors.white,
+          radius: 13,
+        ),
+        label(
+          AppStrings.t('join_a_quiz'),
+          45,
+          104,
+          15,
+          family: 'DaysOne',
+          lineHeight: 1.192,
+        ),
         asset('1-2_imgVector1.svg', 205, 25, 99.716, 108),
         asset('1-2_imgVector2.svg', 203.8, 22.8, 100.115, 106.86),
         _question(
