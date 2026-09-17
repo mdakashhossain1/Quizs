@@ -12,8 +12,17 @@
     </div>
 
     <div class="bg-white border border-gray-200 rounded-lg p-6">
-        <form action="{{ route('admin.categories.store') }}" method="POST" class="space-y-5">
+        <form action="{{ route('admin.categories.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
             @csrf
+
+            <div>
+                <label for="image" class="block text-sm font-medium text-gray-700 mb-1">
+                    Category Image <span class="text-gray-400 font-normal">(optional, max 2MB)</span>
+                </label>
+                <img id="image-preview" class="hidden w-20 h-20 object-cover rounded-lg border border-gray-200 mb-2">
+                <input type="file" id="image" name="image" accept="image/*" onchange="quizsPreviewCategoryImage(this)"
+                       class="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:bg-gray-100 file:text-sm file:font-medium hover:file:bg-gray-200">
+            </div>
 
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Category Name <span class="text-red-500">*</span></label>
@@ -73,5 +82,15 @@
     document.getElementById('color').addEventListener('input', function(e) {
         document.getElementById('colorText').value = e.target.value;
     });
+
+    function quizsPreviewCategoryImage(input) {
+        const preview = document.getElementById('image-preview');
+        if (!input.files || !input.files[0]) {
+            preview.classList.add('hidden');
+            return;
+        }
+        preview.src = URL.createObjectURL(input.files[0]);
+        preview.classList.remove('hidden');
+    }
 </script>
 @endsection

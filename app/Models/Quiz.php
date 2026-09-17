@@ -46,4 +46,16 @@ class Quiz extends Model
     {
         return $this->hasMany(QuizAttempt::class);
     }
+
+    /**
+     * A bilingual quiz has no single fixed language — its questions carry
+     * their own per-language translations instead (bilingual_question_
+     * management_prd.md). A non-null `language` means the older single-
+     * language model: every question's text lives directly on the question/
+     * option rows, exactly as before this feature existed.
+     */
+    public function isBilingual(): bool
+    {
+        return $this->language === null;
+    }
 }

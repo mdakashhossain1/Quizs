@@ -47,6 +47,31 @@ return [
             'report' => false,
         ],
 
+        // Shared-hosting deployments can't rely on `storage:link` symlinks
+        // being reliably supported, so notification thumbnails are written
+        // directly under the web-served `public/` directory instead of the
+        // usual private storage + symlink pattern.
+        'notification_thumbnails' => [
+            'driver' => 'local',
+            'root' => public_path('uploads/notifications'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/uploads/notifications',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // Same shared-hosting reasoning as notification_thumbnails above —
+        // category images must be directly web-served, not behind
+        // Laravel's private storage + symlink pattern.
+        'category_images' => [
+            'driver' => 'local',
+            'root' => public_path('uploads/categories'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/uploads/categories',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

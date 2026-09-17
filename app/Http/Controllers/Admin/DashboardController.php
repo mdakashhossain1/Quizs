@@ -14,8 +14,11 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
+        $onlineTimeout = config('quiz.online_timeout_seconds');
+
         $stats = [
             'total_users' => User::count(),
+            'online_users' => User::where('last_active_at', '>=', now()->subSeconds($onlineTimeout))->count(),
             'total_categories' => Category::count(),
             'total_quizzes' => Quiz::count(),
             'total_questions' => Question::count(),

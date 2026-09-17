@@ -22,6 +22,7 @@
         <table class="w-full text-sm">
             <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
+                    <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Image</th>
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Color</th>
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Name</th>
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Slug</th>
@@ -34,6 +35,13 @@
             <tbody class="divide-y divide-gray-100">
                 @forelse($categories as $cat)
                     <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            @if($cat->image_url)
+                                <img src="{{ $cat->image_url }}" alt="" class="w-10 h-10 object-cover rounded-lg border border-gray-200">
+                            @else
+                                <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 text-gray-300 text-xs">—</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-3">
                             <span class="inline-block w-5 h-5 rounded border border-gray-300" style="background-color: {{ $cat->color }};"></span>
                         </td>
@@ -71,7 +79,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-10 text-center text-gray-400">No categories found. <a href="{{ route('admin.categories.create') }}" class="text-blue-600 hover:underline">Create one</a>.</td>
+                        <td colspan="8" class="px-4 py-10 text-center text-gray-400">No categories found. <a href="{{ route('admin.categories.create') }}" class="text-blue-600 hover:underline">Create one</a>.</td>
                     </tr>
                 @endforelse
             </tbody>

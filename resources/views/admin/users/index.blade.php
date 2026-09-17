@@ -10,6 +10,9 @@
         <h2 class="text-lg font-bold text-gray-900">Users</h2>
         <p class="text-xs text-gray-400 mt-0.5">{{ $users->total() }} total users</p>
     </div>
+    <a href="{{ route('admin.users.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
+        + Add User
+    </a>
 </div>
 
 {{-- Filter --}}
@@ -22,10 +25,15 @@
             <option value="admin" {{ request('role') === 'admin' ? 'selected' : '' }}>Admin</option>
             <option value="user" {{ request('role') === 'user' ? 'selected' : '' }}>User</option>
         </select>
+        <select name="online_status" class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Online or Offline</option>
+            <option value="online" {{ request('online_status') === 'online' ? 'selected' : '' }}>Online</option>
+            <option value="offline" {{ request('online_status') === 'offline' ? 'selected' : '' }}>Offline</option>
+        </select>
         <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
             Filter
         </button>
-        @if(request('search') || request('role'))
+        @if(request('search') || request('role') || request('online_status'))
             <a href="{{ route('admin.users.index') }}" class="text-sm text-gray-500 hover:underline">Clear</a>
         @endif
     </form>
@@ -42,6 +50,7 @@
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Streak</th>
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Score</th>
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Plays</th>
+                    <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Activity</th>
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Status</th>
                     <th class="text-right text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Actions</th>
                 </tr>
@@ -69,12 +78,31 @@
                         <td class="px-4 py-3 text-sm font-semibold text-blue-700">{{ number_format($u->score) }} pts</td>
                         <td class="px-4 py-3 text-sm text-gray-500">{{ $u->quiz_attempts_count }}</td>
                         <td class="px-4 py-3">
+                            <a href="{{ route('admin.users.activity', $u) }}" class="block hover:underline">
+                                @if($u->is_online)
+                                    <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Online
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 text-xs font-medium text-gray-500">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span> Offline
+                                    </span>
+                                @endif
+                                <p class="text-xs text-gray-400 mt-0.5">
+                                    {{ $u->last_active_at ? $u->last_active_at->diffForHumans() : 'Never active' }}
+                                </p>
+                            </a>
+                        </td>
+                        <td class="px-4 py-3">
                             @if($u->is_active)
                                 <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">
                                     <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Active
                                 </span>
                             @else
                                 <span class="text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded">Blocked</span>
+                            @endif
+                            @if($u->must_change_password)
+                                <span class="block mt-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded w-fit">Temp password</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-right">
@@ -83,6 +111,13 @@
                                    class="text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded transition-colors">
                                     Edit
                                 </a>
+                                <form action="{{ route('admin.users.reset-password', $u) }}" method="POST"
+                                      onsubmit="return confirm('Reset password for {{ addslashes($u->name) }}? A new temporary password will be emailed to them.')">
+                                    @csrf
+                                    <button type="submit" class="text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-1 rounded transition-colors">
+                                        Reset Password
+                                    </button>
+                                </form>
                                 @if(Auth::id() !== $u->id)
                                     <form action="{{ route('admin.users.destroy', $u) }}" method="POST"
                                           onsubmit="return confirm('Delete user {{ addslashes($u->name) }}?')">
@@ -97,7 +132,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-10 text-center text-gray-400">No users found.</td>
+                        <td colspan="8" class="px-4 py-10 text-center text-gray-400">No users found.</td>
                     </tr>
                 @endforelse
             </tbody>

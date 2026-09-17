@@ -28,10 +28,15 @@
                 <option value="{{ $q->id }}" {{ request('quiz_id') == $q->id ? 'selected' : '' }}>{{ $q->title }}</option>
             @endforeach
         </select>
+        <select name="translation_status" class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Any Translation Status</option>
+            <option value="hi_missing" {{ request('translation_status') === 'hi_missing' ? 'selected' : '' }}>Hindi Missing</option>
+            <option value="en_missing" {{ request('translation_status') === 'en_missing' ? 'selected' : '' }}>English Missing</option>
+        </select>
         <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
             Filter
         </button>
-        @if(request('search') || request('quiz_id'))
+        @if(request('search') || request('quiz_id') || request('translation_status'))
             <a href="{{ route('admin.questions.index') }}" class="text-sm text-gray-500 hover:underline">Clear</a>
         @endif
     </form>
@@ -46,6 +51,7 @@
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Quiz</th>
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Question</th>
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Options & Answer</th>
+                    <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Translations</th>
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Pts</th>
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">#</th>
                     <th class="text-right text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Actions</th>
@@ -53,6 +59,12 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse($questions as $question)
+                    @php
+                        $bilingual = $question->quiz?->isBilingual() ?? false;
+                        $preview = $question->previewContent();
+                        $hasEn = $question->translations->contains('language_code', 'en');
+                        $hasHi = $question->translations->contains('language_code', 'hi');
+                    @endphp
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
                             <span class="text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">
@@ -60,9 +72,9 @@
                             </span>
                         </td>
                         <td class="px-4 py-3 max-w-xs">
-                            <p class="font-medium text-gray-900 line-clamp-2">{{ $question->question_text }}</p>
-                            @if($question->explanation)
-                                <p class="text-xs text-gray-400 mt-0.5 italic line-clamp-1">{{ $question->explanation }}</p>
+                            <p class="font-medium text-gray-900 line-clamp-2">{{ $preview['question_text'] }}</p>
+                            @if($preview['explanation'])
+                                <p class="text-xs text-gray-400 mt-0.5 italic line-clamp-1">{{ $preview['explanation'] }}</p>
                             @endif
                         </td>
                         <td class="px-4 py-3">
@@ -74,10 +86,20 @@
                                         @else
                                             <span class="w-1.5 h-1.5 rounded-full bg-gray-300 mx-1 flex-shrink-0"></span>
                                         @endif
-                                        <span>{{ $opt->option_text }}</span>
+                                        <span>{{ $bilingual ? $opt->textFor($preview['served_language'] ?? 'en') : $opt->option_text }}</span>
                                     </div>
                                 @endforeach
                             </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            @if($bilingual)
+                                <div class="flex items-center gap-1">
+                                    <span class="text-xs px-1.5 py-0.5 rounded {{ $hasEn ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600' }}">EN {{ $hasEn ? '✓' : 'Missing' }}</span>
+                                    <span class="text-xs px-1.5 py-0.5 rounded {{ $hasHi ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600' }}">HI {{ $hasHi ? '✓' : 'Missing' }}</span>
+                                </div>
+                            @else
+                                <span class="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 uppercase">{{ $question->quiz->language ?? '—' }}</span>
+                            @endif
                         </td>
                         <td class="px-4 py-3 text-gray-700 font-medium text-xs">+{{ $question->points }}</td>
                         <td class="px-4 py-3 text-gray-400 text-xs font-mono">{{ $question->sort_order }}</td>

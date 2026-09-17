@@ -6,7 +6,7 @@
 @section('content')
 
 {{-- Stats Row --}}
-<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+<div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
 
     {{-- Total Users --}}
     <div class="bg-white border border-gray-200 rounded-lg p-4">
@@ -18,6 +18,18 @@
         </div>
         <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['total_users']) }}</p>
         <p class="text-xs text-gray-400 mt-0.5">Registered players</p>
+    </div>
+
+    {{-- Online Now --}}
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Online Now</p>
+            <div class="w-8 h-8 bg-green-50 rounded flex items-center justify-center">
+                <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['online_users']) }}</p>
+        <p class="text-xs text-gray-400 mt-0.5">Active in the last {{ (int) (config('quiz.online_timeout_seconds') / 60) ?: 1 }} min</p>
     </div>
 
     {{-- Categories --}}

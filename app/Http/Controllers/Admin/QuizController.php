@@ -48,10 +48,14 @@ class QuizController extends Controller
             'difficulty' => ['required', 'in:easy,medium,hard'],
             'sort_order' => ['required', 'integer'],
             'is_active' => ['nullable', 'boolean'],
+            // 'bilingual' means no fixed language — each question carries its
+            // own en/hi translations (bilingual_question_management_prd.md).
+            'language' => ['required', 'in:en,hi,bilingual'],
         ]);
 
         $validated['slug'] = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['title']);
         $validated['is_active'] = $request->has('is_active');
+        $validated['language'] = $validated['language'] === 'bilingual' ? null : $validated['language'];
 
         Quiz::create($validated);
 
@@ -66,6 +70,10 @@ class QuizController extends Controller
 
     public function update(Request $request, Quiz $quiz): RedirectResponse
     {
+        // Deliberately excludes 'language' — switching a quiz between
+        // single-language and bilingual after questions already exist would
+        // orphan either its plain text or its translations, so it's fixed
+        // at creation time only.
         $validated = $request->validate([
             'category_id' => ['required', 'exists:categories,id'],
             'title' => ['required', 'string', 'max:255'],

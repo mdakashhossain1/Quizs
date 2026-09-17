@@ -28,6 +28,14 @@
                 </div>
             </div>
 
+            <div>
+                <label for="login_id" class="block text-sm font-medium text-gray-700 mb-1">
+                    Login ID <span class="text-gray-400 font-normal">(optional, can be used instead of email to sign in)</span>
+                </label>
+                <input type="text" id="login_id" name="login_id" value="{{ old('login_id', $user->login_id) }}"
+                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
             <div class="grid grid-cols-3 gap-5">
                 <div>
                     <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role <span class="text-red-500">*</span></label>
@@ -51,10 +59,26 @@
 
             <div>
                 <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
-                    New Password <span class="text-gray-400 font-normal">(leave blank to keep current)</span>
+                    New Password <span class="text-gray-400 font-normal">(leave blank to keep current — sets it directly and clears the temp-password flag; use "Reset Password" from the list instead to email a temp password)</span>
                 </label>
                 <input type="password" id="password" name="password" placeholder="Enter new password..."
                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Daily Quiz Target</label>
+                <label class="flex items-center gap-2 cursor-pointer mb-2">
+                    <input type="checkbox" id="use_global_target"
+                           {{ old('custom_daily_target', $user->custom_daily_target) ? '' : 'checked' }}
+                           onchange="document.getElementById('custom_daily_target').disabled = this.checked"
+                           class="w-4 h-4 border-gray-300 rounded text-blue-600 focus:ring-blue-500">
+                    <span class="text-sm text-gray-700">Use Global Target ({{ $globalDailyTarget }})</span>
+                </label>
+                <input type="number" id="custom_daily_target" name="custom_daily_target" min="1" max="1000"
+                       value="{{ old('custom_daily_target', $user->custom_daily_target) }}"
+                       {{ old('custom_daily_target', $user->custom_daily_target) ? '' : 'disabled' }}
+                       placeholder="Custom target for this user"
+                       class="w-40 px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400">
             </div>
 
             <div>

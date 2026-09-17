@@ -30,6 +30,16 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            // Explicit even though the migration defaults both at the DB
+            // level: Eloquent doesn't hydrate DB-applied column defaults
+            // back into the in-memory model after insert, so an
+            // actingAs()'d user created without these would read as
+            // role=null/is_active=null and fail AdminMiddleware's checks.
+            'role' => 'user',
+            'is_active' => true,
+            'streak' => 0,
+            'score' => 0,
+            'must_change_password' => false,
         ];
     }
 
@@ -41,5 +51,10 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'admin']);
     }
 }
