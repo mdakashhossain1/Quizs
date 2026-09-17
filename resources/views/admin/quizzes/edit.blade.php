@@ -6,7 +6,7 @@
 @section('content')
 
 <div class="max-w-3xl">
-    <div class="flex items-center justify-between mb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <h2 class="text-lg font-bold text-gray-900">Edit: {{ $quiz->title }}</h2>
         <a href="{{ route('admin.quizzes.index') }}" class="text-sm text-gray-500 hover:text-gray-800">&larr; Back to quizzes</a>
     </div>
@@ -15,7 +15,7 @@
         <form action="{{ route('admin.quizzes.update', $quiz) }}" method="POST" class="space-y-5">
             @csrf @method('PUT')
 
-            <div class="grid grid-cols-2 gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                     <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
                     <select id="category_id" name="category_id" required
@@ -56,7 +56,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 <div>
                     <label for="duration_minutes" class="block text-sm font-medium text-gray-700 mb-1">Duration (mins) <span class="text-red-500">*</span></label>
                     <input type="number" id="duration_minutes" name="duration_minutes" value="{{ old('duration_minutes', $quiz->duration_minutes) }}" min="1" required

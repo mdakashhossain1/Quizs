@@ -5,7 +5,7 @@
 
 @section('content')
 
-<div class="flex items-center justify-between mb-5">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
     <div>
         <h2 class="text-lg font-bold text-gray-900">Users</h2>
         <p class="text-xs text-gray-400 mt-0.5">{{ $users->total() }} total users</p>
@@ -19,7 +19,7 @@
 <div class="bg-white border border-gray-200 rounded-lg p-3 mb-4">
     <form method="GET" action="{{ route('admin.users.index') }}" class="flex flex-wrap items-center gap-3">
         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or email..."
-               class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-64">
+               class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64">
         <select name="role" class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">All Roles</option>
             <option value="admin" {{ request('role') === 'admin' ? 'selected' : '' }}>Admin</option>

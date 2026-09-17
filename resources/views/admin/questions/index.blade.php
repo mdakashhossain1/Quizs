@@ -5,7 +5,7 @@
 
 @section('content')
 
-<div class="flex items-center justify-between mb-5">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
     <div>
         <h2 class="text-lg font-bold text-gray-900">Questions Bank</h2>
         <p class="text-xs text-gray-400 mt-0.5">{{ $questions->total() }} total questions</p>
@@ -21,7 +21,7 @@
 <div class="bg-white border border-gray-200 rounded-lg p-3 mb-4">
     <form method="GET" action="{{ route('admin.questions.index') }}" class="flex flex-wrap items-center gap-3">
         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search question text..."
-               class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-64">
+               class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64">
         <select name="quiz_id" class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">All Quizzes</option>
             @foreach($quizzes as $q)

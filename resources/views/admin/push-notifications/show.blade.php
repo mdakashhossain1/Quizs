@@ -8,7 +8,7 @@
 @section('content')
 
 <div class="max-w-3xl">
-    <div class="flex items-center justify-between mb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <h2 class="text-lg font-bold text-gray-900">{{ $pushNotification->title }}</h2>
         <a href="{{ route('admin.push-notifications.index') }}" class="text-sm text-gray-500 hover:text-gray-800">&larr; Back to notifications</a>
     </div>
@@ -20,7 +20,7 @@
 
         <p class="text-sm text-gray-700">{{ $pushNotification->body }}</p>
 
-        <div class="grid grid-cols-2 gap-4 text-sm border-t border-gray-100 pt-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm border-t border-gray-100 pt-4">
             <div>
                 <p class="text-xs text-gray-400 uppercase tracking-wide">Audience</p>
                 <p class="font-medium text-gray-900 capitalize">{{ $pushNotification->target_type }}</p>

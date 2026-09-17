@@ -28,8 +28,8 @@
         <form action="{{ route('admin.settings.email.update') }}" method="POST" class="space-y-4" id="email-form">
             @csrf @method('PUT')
 
-            <div class="grid grid-cols-3 gap-4">
-                <div class="col-span-2">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="sm:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">SMTP Host</label>
                     <input type="text" name="mail_host" value="{{ old('mail_host', $host) }}" required placeholder="smtp.gmail.com"
                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -53,7 +53,7 @@
                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">From Address</label>
                     <input type="email" name="mail_from_address" value="{{ old('mail_from_address', $fromAddress) }}" required

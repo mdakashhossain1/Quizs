@@ -9,7 +9,7 @@
     $answersByQuestion = $quizAttempt->answers->keyBy('question_id');
 @endphp
 
-<div class="flex items-center justify-between mb-5">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
     <div>
         <h2 class="text-lg font-bold text-gray-900">{{ $quizAttempt->quiz->title ?? 'Deleted Quiz' }}</h2>
         <p class="text-xs text-gray-400 mt-0.5">{{ $quizAttempt->user->name ?? 'Unknown user' }} &middot; {{ $quizAttempt->user->email ?? '' }}</p>
@@ -18,7 +18,7 @@
 </div>
 
 {{-- Summary --}}
-<div class="grid grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
     <div class="bg-white border border-gray-200 rounded-lg p-4">
         <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Status</p>
         @if($quizAttempt->status === 'completed')

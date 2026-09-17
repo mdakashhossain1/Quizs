@@ -5,7 +5,7 @@
 
 @section('content')
 
-<div class="flex items-center justify-between mb-5">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
     <div>
         <h2 class="text-lg font-bold text-gray-900">{{ $user->name }}</h2>
         <p class="text-xs text-gray-400 mt-0.5">{{ $user->email }} @if($user->login_id) &middot; Login ID: {{ $user->login_id }} @endif</p>
@@ -14,7 +14,7 @@
 </div>
 
 {{-- Current status --}}
-<div class="grid grid-cols-4 gap-4 mb-6">
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
     <div class="bg-white border border-gray-200 rounded-lg p-4">
         <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Status</p>
         @if($user->is_online)
@@ -42,7 +42,7 @@
 </div>
 
 {{-- Profile stats — identical computation to the mobile app's Profile screen (roadmap §9.5) --}}
-<div class="grid grid-cols-3 lg:grid-cols-8 gap-4 mb-6">
+<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
     <div class="bg-white border border-gray-200 rounded-lg p-4">
         <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Rank</p>
         <p class="text-lg font-bold text-gray-900">#{{ $stats['rank'] }}</p>
@@ -86,7 +86,7 @@
             <h3 class="font-semibold text-gray-900 text-sm">Session History</h3>
             <p class="text-xs text-gray-400">Individual app-usage sessions, derived from heartbeat activity</p>
         </div>
-        <form method="GET" action="{{ route('admin.users.activity', $user) }}" class="flex items-center gap-2">
+        <form method="GET" action="{{ route('admin.users.activity', $user) }}" class="flex flex-wrap items-center gap-2">
             <input type="date" name="date_from" value="{{ request('date_from') }}"
                    class="px-2 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
             <span class="text-xs text-gray-400">to</span>

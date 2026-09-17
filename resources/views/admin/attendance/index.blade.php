@@ -7,7 +7,7 @@
 
 @section('content')
 
-<div class="flex items-center justify-between mb-5">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
     <div>
         <h2 class="text-lg font-bold text-gray-900">Attendance</h2>
         <p class="text-xs text-gray-400 mt-0.5">{{ Carbon::parse($date)->format('l, M j, Y') }}</p>
@@ -20,7 +20,7 @@
         <input type="date" name="date" value="{{ $date }}"
                class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or email..."
-               class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-56">
+               class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-56">
         <select name="status" class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">Any Status (this date)</option>
             <option value="present" {{ request('status') === 'present' ? 'selected' : '' }}>Present</option>

@@ -7,7 +7,7 @@
 
 @section('content')
 
-<div class="flex items-center justify-between mb-5">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
     <div>
         <h2 class="text-lg font-bold text-gray-900">Daily Targets</h2>
         <p class="text-xs text-gray-400 mt-0.5">{{ $progress->total() }} recorded days</p>
@@ -18,7 +18,7 @@
 <div class="bg-white border border-gray-200 rounded-lg p-3 mb-4">
     <form method="GET" action="{{ route('admin.targets.index') }}" class="flex flex-wrap items-center gap-3">
         <input type="text" name="user" value="{{ request('user') }}" placeholder="Search by user name or email..."
-               class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-56">
+               class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-56">
         <select name="status" class="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">All Statuses</option>
             <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
