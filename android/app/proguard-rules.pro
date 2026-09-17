@@ -76,6 +76,21 @@
 -keep interface okhttp3.** { *; }
 
 # ============================================================
+# AndroidX WorkManager / Room
+# (flutter_local_notifications and Firebase Messaging schedule
+# background work via WorkManager, whose WorkDatabase is a Room
+# database instantiated by reflection on its generated *_Impl
+# class name — without these keeps R8 renames/strips it and the
+# app crashes on launch with "Failed to create an instance of
+# androidx.work.impl.WorkDatabase".)
+# ============================================================
+-keep class androidx.work.** { *; }
+-keep class androidx.room.** { *; }
+-keep class androidx.sqlite.** { *; }
+-dontwarn androidx.work.**
+-dontwarn androidx.room.**
+
+# ============================================================
 # Kotlin Coroutines
 # ============================================================
 -keep class kotlinx.coroutines.** { *; }

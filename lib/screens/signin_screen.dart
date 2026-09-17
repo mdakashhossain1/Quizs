@@ -125,24 +125,14 @@ class _SignInScreenState extends State<SignInScreen> {
                         children: [
                           const SizedBox(height: 16),
 
-                          // Quiz Badge
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [Color(0xFF5800A4), Color(0xFF8C26E8)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.auto_awesome_rounded,
-                                color: Colors.white,
-                                size: 30,
-                              ),
+                          // App Logo
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset(
+                              'assets/figma/logo.png',
+                              width: 88,
+                              height: 88,
+                              fit: BoxFit.cover,
                             ),
                           ),
                           const SizedBox(height: 20),

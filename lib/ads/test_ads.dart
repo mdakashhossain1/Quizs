@@ -22,6 +22,13 @@ class TestAds with WidgetsBindingObserver {
   static InterstitialAd? _interstitialAd;
   static bool _isLoadingInterstitial = false;
 
+  // On Android, `resumed` also fires after a transient `inactive` blip that
+  // never actually left the foreground (keyboard open/close, permission
+  // dialogs, other window-focus changes) — only treat `resumed` as an app
+  // open when it follows a real `paused`, so in-app navigation/typing
+  // doesn't retrigger the App Open ad.
+  static bool _wasBackgrounded = false;
+
   static bool get supported =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
@@ -204,8 +211,13 @@ class TestAds with WidgetsBindingObserver {
   /// Triggered whenever the user brings the app back to foreground.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      showAppOpenAdIfAvailable();
+    if (state == AppLifecycleState.paused) {
+      _wasBackgrounded = true;
+    } else if (state == AppLifecycleState.resumed) {
+      if (_wasBackgrounded) {
+        _wasBackgrounded = false;
+        showAppOpenAdIfAvailable();
+      }
     }
   }
 }
