@@ -2,6 +2,10 @@
 <html>
 <body style="font-family: sans-serif; background: #F8F5FC; padding: 24px;">
     <div style="max-width: 460px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 32px;">
+        <div style="text-align: center; margin-bottom: 16px;">
+            <img src="{{ asset('logo.png') }}" alt="Quizs" width="72" height="72" style="border-radius: 16px;">
+        </div>
+
         <h2 style="color: #1E1E1E; margin-bottom: 8px;">
             {{ $isReset ? 'Your password has been reset' : 'Welcome to Quizs' }}
         </h2>

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\QuizApiController;
 use App\Http\Controllers\Api\TargetController;
+use App\Http\Controllers\CronController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,11 @@ Route::prefix('auth')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });
+
+// Webcron endpoint for HTTP-based cron services (e.g. cron-job.org) to
+// drain the queue on hosts without a persistent `queue:work` process.
+// Auth is the ?key= query param, not auth:sanctum — see CronController.
+Route::get('/cron/run-queue', [CronController::class, 'runQueue']);
 
 // Public Quiz & Content Browsing
 Route::get('/categories', [QuizApiController::class, 'categories']);

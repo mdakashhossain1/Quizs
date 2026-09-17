@@ -42,6 +42,12 @@ return [
         'api_key' => env('FIREBASE_API_KEY'),
     ],
 
+    'cron' => [
+        // Shared secret for the cron-job.org webhook (App\Http\Controllers\CronController).
+        // Generate one with `php artisan tinker --execute="echo Str::random(40);"`.
+        'secret' => env('CRON_SECRET'),
+    ],
+
     'fcm' => [
         // Firebase Cloud Messaging (HTTP v1 API), for push notifications
         // e.g. attendance updates. Until both are set, FcmService logs the
