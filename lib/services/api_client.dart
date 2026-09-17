@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -23,24 +22,10 @@ class ApiClient {
   ApiClient._();
   static final ApiClient instance = ApiClient._();
 
-  // Laravel is served by XAMPP at /Quizs/admin/public/index.php.
-  // The /public segment is required in the URL because no virtual host
-  // (e.g. quizs-api.local) has been configured to rewrite it away.
-  // On the Android emulator 10.0.2.2 maps to the host machine's localhost.
-  // For a real device on the same LAN, replace 10.0.2.2 with the host's LAN IP.
-  static const String _basePath = '/Quizs/admin/public/api';
-
-  static String get baseUrl {
-    if (!kIsWeb && Platform.isAndroid) {
-      // 10.0.2.2 is how the Android emulator reaches the host machine's localhost.
-      return 'http://10.0.2.2$_basePath';
-    }
-    if (!kIsWeb && Platform.isIOS) {
-      // iOS simulator can use localhost directly.
-      return 'http://localhost$_basePath';
-    }
-    return 'http://localhost$_basePath';
-  }
+  // Deployed on shared hosting via the root-level index.php/.htaccess
+  // bridge in admin/ (see admin/.htaccess), so the API is reachable
+  // directly at /api/... with no /admin/public prefix.
+  static const String baseUrl = 'https://olivedrab-clam-557206.hostingersite.com/api';
 
   String? _token;
   http.Client _client = http.Client();
