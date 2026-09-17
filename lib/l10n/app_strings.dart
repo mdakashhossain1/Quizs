@@ -44,16 +44,16 @@ class AppStrings {
       'category': 'Category',
       'dashboard': 'Category',
       'profile': 'Profile',
+      'attendance': 'Attendance',
       'back': 'Back',
       'advertisement': 'ADVERTISEMENT',
 
 
       // Home Screen
       'welcome': 'Welcome',
-      'level_32': 'Level 32',
       'leaderboard': 'LEADERBOARD',
       'achievement': 'ACHIEVEMENT',
-      'rank_70': 'RANK 70',
+      'rank_label': 'RANK',
       'quiz_category': 'Quiz Category',
       'browse_categories': 'Browse categories',
       'science': 'Science',
@@ -67,20 +67,8 @@ class AppStrings {
       'daily_challenge': 'Daily\nChallenge',
       'join_a_quiz': 'Join a Quiz',
 
-      // Dashboard Screen
-      'dashboard_user_rank': 'Level 32 · Global Rank #70',
-      'quizzes_played': 'Quizzes Played',
-      'current_streak': 'Current Streak',
-      'days_streak': '7 Days',
-      'win_accuracy': 'Win Accuracy',
-      'total_score': 'Total Score',
-      'daily_sprint_title': 'Daily Sprint Challenge',
-      'sprint_progress': '3/5 Done',
-      'next_topic': 'Next: Trigonometry',
-      'continue_btn': 'Continue',
-      'recent_performances': 'Recent Performances',
+      // Shared quiz-card skeleton placeholder text (QuizCard in design_widgets.dart)
       'trigonometry': 'Trigonometry',
-      'planets_solar': 'Planets & Solar System',
 
       // Profile Screen
       'level_20': '20',
@@ -100,6 +88,15 @@ class AppStrings {
       'log_out': 'Log Out',
       'select_language': 'Select Language',
 
+      // Achievement Screen
+      'achievements_title': 'Achievements',
+      'your_rank_stat': 'Your Rank',
+      'total_users_stat': 'Total Users',
+      'active_users_stat': 'Active Users',
+      'active_this_month_stat': 'Active This Month',
+      'global_ranking': 'Global Ranking',
+      'no_ranking_data': 'No ranking data yet.',
+
       // Notifications Screen
       'notifications': 'Notifications',
       'all_filter': 'All',
@@ -107,18 +104,7 @@ class AppStrings {
       'rewards_filter': 'Rewards',
       'mark_all_read': 'Mark all read',
       'all_notifs_read': 'All notifications marked as read',
-      'time_10m': '10m ago',
-      'time_2h': '2h ago',
-      'time_1d': '1d ago',
-      'time_3d': '3d ago',
-      'notif_sprint_title': 'Daily Sprint Challenge is Live!',
-      'notif_sprint_desc': 'Complete 5 Trigonometry questions today to keep your 7-day streak.',
-      'notif_rank_title': 'You reached Global Rank #70!',
-      'notif_rank_desc': 'Awesome job, Aman! You are in the top 5% of Mathematics solvers this week.',
-      'notif_quiz_title': 'New Solar System Quiz Added',
-      'notif_quiz_desc': 'Explore 10 brand new questions in Science & Astronomy with 320 XP bonus.',
-      'notif_reward_title': 'Level 20 Master Unlocked',
-      'notif_reward_desc': 'You have earned the Speed Solver badge with 87% overall quiz accuracy.',
+      'no_notifications': 'No notifications yet.',
 
       // Selection Screen
       'choose_category': 'Choose category',
@@ -142,8 +128,11 @@ class AppStrings {
       'next_trial_in_5s': 'Next Trial in 5s',
       'next_trial': 'Next Trial',
       'congratulations': 'Congratulations !',
-      'score_prefix': 'You have scored ',
-      'score_suffix': ' Points',
+      'result_good': 'Great Job!',
+      'result_average': 'Good Effort!',
+      'result_low': 'Keep Practicing!',
+      'result_accuracy_label': 'Accuracy: ',
+      'result_time_label': '  •  Time: ',
       'question_solved': 'Question Solved',
       'return_home': 'Return home',
 
@@ -197,16 +186,16 @@ class AppStrings {
       'category': 'श्रेणी',
       'dashboard': 'श्रेणी',
       'profile': 'प्रोफ़ाइल',
+      'attendance': 'उपस्थिति',
       'back': 'वापस',
       'advertisement': 'विज्ञापन',
 
 
       // Home Screen
       'welcome': 'स्वागत है',
-      'level_32': 'लेवल 32',
       'leaderboard': 'लीडरबोर्ड',
       'achievement': 'उपलब्धि',
-      'rank_70': 'रैंक 70',
+      'rank_label': 'रैंक',
       'quiz_category': 'क्विज़ श्रेणी',
       'browse_categories': 'श्रेणियां देखें',
       'science': 'विज्ञान',
@@ -220,20 +209,8 @@ class AppStrings {
       'daily_challenge': 'दैनिक\nचुनौती',
       'join_a_quiz': 'क्विज़ शुरू करें',
 
-      // Dashboard Screen
-      'dashboard_user_rank': 'स्तर 32 · वैश्विक रैंक #70',
-      'quizzes_played': 'खेले गए क्विज़',
-      'current_streak': 'सक्रिय स्ट्रीक',
-      'days_streak': '7 दिन',
-      'win_accuracy': 'सटीकता दर',
-      'total_score': 'कुल स्कोर',
-      'daily_sprint_title': 'दैनिक स्प्रिंट चुनौती',
-      'sprint_progress': '3/5 पूर्ण',
-      'next_topic': 'अगला: त्रिकोणमिति',
-      'continue_btn': 'जारी रखें',
-      'recent_performances': 'हालिया प्रदर्शन',
+      // Shared quiz-card skeleton placeholder text (QuizCard in design_widgets.dart)
       'trigonometry': 'त्रिकोणमिति',
-      'planets_solar': 'ग्रह और सौरमंडल',
 
       // Profile Screen
       'level_20': '20',
@@ -253,6 +230,15 @@ class AppStrings {
       'log_out': 'लॉग आउट',
       'select_language': 'भाषा चुनें',
 
+      // Achievement Screen
+      'achievements_title': 'उपलब्धियां',
+      'your_rank_stat': 'आपकी रैंक',
+      'total_users_stat': 'कुल उपयोगकर्ता',
+      'active_users_stat': 'सक्रिय उपयोगकर्ता',
+      'active_this_month_stat': 'इस महीने सक्रिय',
+      'global_ranking': 'वैश्विक रैंकिंग',
+      'no_ranking_data': 'अभी तक कोई रैंकिंग डेटा नहीं है।',
+
       // Notifications Screen
       'notifications': 'सूचनाएं',
       'all_filter': 'सभी',
@@ -260,18 +246,7 @@ class AppStrings {
       'rewards_filter': 'इनाम',
       'mark_all_read': 'सभी पढ़ा हुआ करें',
       'all_notifs_read': 'सभी सूचनाएं पढ़ी गईं',
-      'time_10m': '10 मिनट पहले',
-      'time_2h': '2 घंटे पहले',
-      'time_1d': '1 दिन पहले',
-      'time_3d': '3 दिन पहले',
-      'notif_sprint_title': 'दैनिक स्प्रिंट चुनौती लाइव है!',
-      'notif_sprint_desc': 'अपनी 7-दिवसीय स्ट्रीक बनाए रखने के लिए आज 5 त्रिकोणमिति प्रश्न पूरे करें।',
-      'notif_rank_title': 'आप ग्लोबल रैंक #70 पर पहुंचे!',
-      'notif_rank_desc': 'शानदार काम, अमन! आप इस सप्ताह शीर्ष 5% गणित हल करने वालों में हैं।',
-      'notif_quiz_title': 'नया सौरमंडल क्विज़ जोड़ा गया',
-      'notif_quiz_desc': '320 XP बोनस के साथ विज्ञान और खगोल विज्ञान में 10 नए प्रश्न हल करें।',
-      'notif_reward_title': 'लेवल 20 मास्टर अनलॉक हुआ',
-      'notif_reward_desc': 'आपने 87% समग्र क्विज़ सटीकता के साथ स्पीड सॉल्वर बैज अर्जित किया है।',
+      'no_notifications': 'अभी तक कोई सूचना नहीं है।',
 
       // Selection Screen
       'choose_category': 'श्रेणी चुनें',
@@ -295,8 +270,11 @@ class AppStrings {
       'next_trial_in_5s': 'अगला प्रयास 5s में',
       'next_trial': 'अगला प्रयास',
       'congratulations': 'बधाई हो !',
-      'score_prefix': 'आपने स्कोर किए ',
-      'score_suffix': ' अंक',
+      'result_good': 'बहुत बढ़िया!',
+      'result_average': 'अच्छा प्रयास!',
+      'result_low': 'अभ्यास जारी रखें!',
+      'result_accuracy_label': 'सटीकता: ',
+      'result_time_label': '  •  समय: ',
       'question_solved': 'हल किए गए प्रश्न',
       'return_home': 'होम पर जाएं',
 

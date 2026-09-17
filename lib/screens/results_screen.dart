@@ -3,8 +3,25 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
-import '../services/leaderboard_service.dart';
+import '../models/quiz_ranking_model.dart';
 import '../widgets/design_widgets.dart';
+
+/// Result-message copy per [QuizResultArgs.performanceState] — the backend
+/// only decides WHICH tier applies (config('quiz.performance_thresholds')),
+/// the frontend owns the actual wording/color (roadmap "Dynamic Result
+/// Message"). Change here to retune copy without touching the API.
+class _PerformanceMessage {
+  const _PerformanceMessage(this.headingKey, this.color);
+  final String headingKey;
+  final Color color;
+}
+
+const _performanceMessages = {
+  'excellent': _PerformanceMessage('congratulations', Color(0xFF6703BF)),
+  'good': _PerformanceMessage('result_good', Color(0xFF10BA65)),
+  'average': _PerformanceMessage('result_average', Color(0xFFFF9800)),
+  'low': _PerformanceMessage('result_low', Color(0xFFE53935)),
+};
 
 class QuizResultArgs {
   const QuizResultArgs({
@@ -12,49 +29,41 @@ class QuizResultArgs {
     this.rightCount = 8,
     this.wrongCount = 2,
     this.scorePercentage = 80,
+    this.accuracy,
+    this.timeTakenSeconds,
+    this.performanceState = 'good',
+    this.quizRanking = QuizRanking.empty,
   });
 
   final int totalSolved;
   final int rightCount;
   final int wrongCount;
   final int scorePercentage;
+  final double? accuracy;
+  final int? timeTakenSeconds;
+
+  /// 'excellent' | 'good' | 'average' | 'low' — see [_performanceMessages].
+  final String performanceState;
+
+  /// This quiz's own leaderboard (best attempt per user) — never the global
+  /// Achievement-page ranking (roadmap Part C: the two must stay separate).
+  final QuizRanking quizRanking;
 }
 
-class ResultsScreen extends StatefulWidget {
+class ResultsScreen extends StatelessWidget {
   const ResultsScreen({super.key, this.resultArgs});
   final QuizResultArgs? resultArgs;
 
   @override
-  State<ResultsScreen> createState() => _ResultsScreenState();
-}
-
-class _ResultsScreenState extends State<ResultsScreen> {
-  List<LeaderboardEntry> _leaderboard = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadLeaderboard();
-  }
-
-  Future<void> _loadLeaderboard() async {
-    try {
-      final leaderboard = await LeaderboardService.instance.fetchTop();
-      if (mounted) setState(() => _leaderboard = leaderboard);
-    } catch (_) {
-      // No live leaderboard data available; podium stays blank rather than fake.
-    }
-  }
-
-  LeaderboardEntry? _entryAt(int index) =>
-      index < _leaderboard.length ? _leaderboard[index] : null;
-
-  @override
   Widget build(BuildContext context) {
-    final res = widget.resultArgs ?? const QuizResultArgs();
+    final res = resultArgs ?? const QuizResultArgs();
+    final ranking = res.quizRanking;
+    final message = _performanceMessages[res.performanceState] ?? _performanceMessages['good']!;
+    QuizRankingEntry? entryAt(int index) =>
+        index < ranking.top.length ? ranking.top[index] : null;
 
     return DesignCanvas(
-      adAfter: 805,
+      adAfter: 840,
       topColor: const Color(0xFF31005C),
       darkBanner: false,
       children: [
@@ -121,13 +130,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
         ),
         asset('12-310_imgTrophy31.png', 145, 82, 122, 122),
         label(
-          AppStrings.t('congratulations'),
+          AppStrings.t(message.headingKey),
           0,
           204,
           20,
           width: 412,
           align: TextAlign.center,
-          color: const Color(0xFF6703BF),
+          color: message.color,
           weight: FontWeight.w800,
         ),
         at(
@@ -135,7 +144,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
           239,
           412,
           18,
-          const Center(child: ScoreCaption()),
+          Center(
+            child: ScoreCaption(
+              accuracy: res.accuracy,
+              timeTakenSeconds: res.timeTakenSeconds,
+            ),
+          ),
         ),
         panel(49, 273, 314, 1, const Color(0xFFD9D9D9)),
         for (var i = 0; i < 3; i++) ...[
@@ -212,7 +226,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           ),
         ),
         label(
-          _entryAt(1)?.name ?? '',
+          entryAt(1)?.name ?? '',
           91,
           464,
           10,
@@ -221,7 +235,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           lineHeight: 1.3,
         ),
         label(
-          _entryAt(0)?.name ?? '',
+          entryAt(0)?.name ?? '',
           168,
           434,
           10,
@@ -230,7 +244,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           lineHeight: 1.3,
         ),
         label(
-          _entryAt(2)?.name ?? '',
+          entryAt(2)?.name ?? '',
           244,
           481,
           10,
@@ -268,7 +282,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           ),
           asset('12-310_imgProfile3.png', 71, 680 + i * 73, 39, 39),
           label(
-            _entryAt(i + 3)?.name ?? '',
+            entryAt(i + 3)?.name ?? '',
             126,
             684 + i * 73,
             12,
@@ -277,7 +291,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
             lineHeight: 1.25,
           ),
           label(
-            _entryAt(i + 3) != null ? '${_entryAt(i + 3)!.streak} day streak' : '',
+            entryAt(i + 3) != null ? '${entryAt(i + 3)!.accuracy.round()}% accuracy' : '',
             126,
             699 + i * 73,
             8,
@@ -285,7 +299,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
             lineHeight: 1.5,
           ),
           label(
-            _entryAt(i + 3) != null ? '${_entryAt(i + 3)!.score} pts' : '',
+            entryAt(i + 3) != null ? '${entryAt(i + 3)!.score} pts' : '',
             342,
             689 + i * 73,
             16,
@@ -294,28 +308,52 @@ class _ResultsScreenState extends State<ResultsScreen> {
             lineHeight: 1.25,
           ),
         ],
+        if (ranking.yourRank != null)
+          label(
+            'Your Rank: #${ranking.yourRank} of ${ranking.totalParticipants}',
+            0,
+            812,
+            13,
+            width: 412,
+            align: TextAlign.center,
+            color: const Color(0xFF757575),
+            weight: FontWeight.w600,
+          ),
       ],
     );
   }
 }
 
+/// Roadmap "Dynamic Result Summary": shows the attempt's real accuracy and
+/// time taken instead of a fixed "You have scored 100+ Points" caption that
+/// never reflected the actual result.
 class ScoreCaption extends StatelessWidget {
-  const ScoreCaption({super.key, this.size = 12});
+  const ScoreCaption({super.key, this.size = 12, this.accuracy, this.timeTakenSeconds});
+
   final double size;
+  final double? accuracy;
+  final int? timeTakenSeconds;
+
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return minutes > 0 ? '${minutes}m ${secs}s' : '${secs}s';
+  }
 
   @override
   Widget build(BuildContext context) => Text.rich(
         TextSpan(
           children: [
-            TextSpan(text: AppStrings.t('score_prefix')),
-            const TextSpan(
-              text: '100+',
-              style: TextStyle(
+            TextSpan(text: AppStrings.t('result_accuracy_label')),
+            TextSpan(
+              text: accuracy != null ? '${accuracy!.toStringAsFixed(1)}%' : '—',
+              style: const TextStyle(
                 color: Color(0xFF00EB4E),
                 fontWeight: FontWeight.w500,
               ),
             ),
-            TextSpan(text: AppStrings.t('score_suffix')),
+            if (timeTakenSeconds != null)
+              TextSpan(text: '${AppStrings.t('result_time_label')}${_formatDuration(timeTakenSeconds!)}'),
           ],
         ),
         style: TextStyle(

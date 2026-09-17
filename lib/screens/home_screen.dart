@@ -3,12 +3,36 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
+import '../services/auth_service.dart';
+import '../services/profile_stats_service.dart';
 import '../widgets/design_widgets.dart';
 import '../widgets/illustration.dart';
 import '../widgets/quiz_bottom_nav.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  ProfileStats _stats = ProfileStats.empty;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    try {
+      final stats = await ProfileStatsService.instance.fetch();
+      if (mounted) setState(() => _stats = stats);
+    } catch (_) {
+      // Leave ProfileStats.empty in place rather than showing stale numbers.
+    }
+  }
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
@@ -24,6 +48,8 @@ class HomeScreen extends StatelessWidget {
           Navigator.pushNamed(context, '/categories');
         } else if (index == 2) {
           Navigator.pushNamed(context, '/profile');
+        } else if (index == 3) {
+          Navigator.pushNamed(context, '/attendance');
         }
       },
 
@@ -102,7 +128,7 @@ class HomeScreen extends StatelessWidget {
         lineHeight: 1.25,
       ),
       label(
-        'Aman',
+        AuthService.instance.userName,
         66,
         116,
         32,
@@ -111,7 +137,7 @@ class HomeScreen extends StatelessWidget {
         lineHeight: 1.44,
       ),
       label(
-        AppStrings.t('level_32'),
+        '${AppStrings.t('level_label')} ${_stats.level}',
         252,
         113,
         24,
@@ -123,9 +149,9 @@ class HomeScreen extends StatelessWidget {
         204,
         139,
         142,
-        const AnimatedSection(
-          delay: Duration(milliseconds: 50),
-          child: _RankCard(),
+        AnimatedSection(
+          delay: const Duration(milliseconds: 50),
+          child: _RankCard(rank: _stats.rank),
         ),
       ),
       at(
@@ -133,9 +159,9 @@ class HomeScreen extends StatelessWidget {
         204,
         139,
         142,
-        const AnimatedSection(
-          delay: Duration(milliseconds: 80),
-          child: _RankCard(achievement: true),
+        AnimatedSection(
+          delay: const Duration(milliseconds: 80),
+          child: _RankCard(rank: _stats.rank, achievement: true),
         ),
       ),
       action(
@@ -173,7 +199,13 @@ class HomeScreen extends StatelessWidget {
         340,
         30,
       ),
-      ...categories(context, 448, home: true),
+      at(
+        20,
+        448,
+        372,
+        105,
+        const HomeCategoriesRow(),
+      ),
       at(
         37,
         576,
@@ -187,7 +219,7 @@ class HomeScreen extends StatelessWidget {
       action(
         context,
         'Join a Quiz',
-        '/question',
+        '/categories',
         37,
         576,
         337,
@@ -199,7 +231,11 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _RankCard extends StatelessWidget {
-  const _RankCard({this.achievement = false});
+  const _RankCard({required this.rank, this.achievement = false});
+
+  /// Backend-computed leaderboard position (roadmap §12); 0 means not
+  /// loaded yet.
+  final int rank;
   final bool achievement;
 
   @override
@@ -313,7 +349,7 @@ class _RankCard extends StatelessWidget {
         color: achievement ? Colors.black : Colors.white,
       ),
       label(
-        AppStrings.t('rank_70'),
+        rank > 0 ? '${AppStrings.t('rank_label')} $rank' : '',
         27,
         98,
         20,

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../ads/test_ads.dart';
 import '../l10n/app_strings.dart';
 import '../models/question_model.dart';
+import '../models/quiz_ranking_model.dart';
 import '../services/quiz_api_service.dart';
 import '../widgets/design_widgets.dart';
 import 'results_screen.dart';
@@ -29,6 +30,7 @@ class QuestionScreen extends StatefulWidget {
 class _QuestionScreenState extends State<QuestionScreen> {
   late List<Question> _questions;
   int? _quizId;
+  int? _attemptId;
   bool _isLoadingRemote = false;
   bool _remoteLoadError = false;
   int _currentIndex = 0;
@@ -44,20 +46,53 @@ class _QuestionScreenState extends State<QuestionScreen> {
   @override
   void initState() {
     super.initState();
+    AppLanguage.instance.addListener(_onLanguageChanged);
+    if (widget.questions != null && widget.questions!.isNotEmpty) {
+      _questions = widget.questions!;
+      _isLoadingRemote = false;
+      _remoteLoadError = false;
+      return;
+    }
+    _questions = const [];
     final remoteQuizId = widget.topic?.remoteQuizId;
-    if (remoteQuizId != null && (widget.topic?.questions.isEmpty ?? true)) {
+    if (remoteQuizId != null) {
       _quizId = remoteQuizId;
-      _questions = const [];
       _loadRemoteQuestions(remoteQuizId);
     } else {
-      _initQuiz();
+      _remoteLoadError = true;
+      _isLoadingRemote = false;
     }
   }
 
   @override
   void dispose() {
+    AppLanguage.instance.removeListener(_onLanguageChanged);
     _countdownTimer?.cancel();
     super.dispose();
+  }
+
+  /// Re-renders the current in-progress attempt in the newly selected
+  /// language without resetting it (bilingual_question_management_prd.md
+  /// §10) — question order/count/correct-answer index are stable across
+  /// languages, so swapping the fetched list in place preserves
+  /// [_currentIndex], [_selectedOption] and [_userAnswers] untouched. A
+  /// locally-supplied (non-remote) question set has nothing to refetch.
+  void _onLanguageChanged() {
+    final quizId = _quizId;
+    if (quizId == null || _isLoadingRemote) return;
+    _refreshQuestionsForLanguage(quizId);
+  }
+
+  Future<void> _refreshQuestionsForLanguage(int quizId) async {
+    try {
+      final questions = await QuizApiService.instance.fetchQuizQuestions(quizId);
+      if (!mounted || questions.length != _questions.length) return;
+      setState(() => _questions = questions);
+    } catch (e) {
+      // Keep showing the previous language's content rather than
+      // disrupting an in-progress attempt over a transient network error.
+      debugPrint('Quiz language refresh note: $e');
+    }
   }
 
   Future<void> _loadRemoteQuestions(int quizId) async {
@@ -68,12 +103,20 @@ class _QuestionScreenState extends State<QuestionScreen> {
     try {
       final questions = await QuizApiService.instance.fetchQuizQuestions(quizId);
       if (!mounted) return;
+      if (questions.isEmpty) {
+        setState(() {
+          _remoteLoadError = true;
+          _isLoadingRemote = false;
+        });
+        return;
+      }
       setState(() {
-        _questions = questions.isNotEmpty ? questions : [_fallbackQuestion];
+        _questions = questions;
         _isLoadingRemote = false;
       });
+      _startAttempt(quizId);
     } catch (e) {
-      debugPrint('Quiz load note: $e');
+      debugPrint('Quiz load error: $e');
       if (!mounted) return;
       setState(() {
         _remoteLoadError = true;
@@ -82,38 +125,16 @@ class _QuestionScreenState extends State<QuestionScreen> {
     }
   }
 
-  void _initQuiz() {
-    final isHindi = AppLanguage.instance.isHindi;
-    final defaultMarsQ = Question(
-      id: 'DEFAULT_01',
-      language: isHindi ? 'Hindi' : 'English',
-      category: isHindi ? 'विज्ञान' : 'Science',
-      subtopic: isHindi ? 'ग्रह और सौरमंडल' : 'Planets & Solar System',
-      difficulty: 'Easy',
-      question: AppStrings.t('q_red_planet'),
-      optionA: AppStrings.t('venus'),
-      optionB: AppStrings.t('mercury'),
-      optionC: AppStrings.t('mars'),
-      optionD: AppStrings.t('jupiter'),
-      correctOption: 'C',
-      correctAnswer: AppStrings.t('mars'),
-      meaning: AppStrings.t('mars_desc_title'),
-      explanation: AppStrings.t('mars_desc_body'),
-    );
-
-    if (widget.questions != null && widget.questions!.isNotEmpty) {
-      _questions = widget.questions!;
-    } else if (widget.topic != null && widget.topic!.questions.isNotEmpty) {
-      _questions = widget.topic!.questions;
-    } else {
-      _questions = [defaultMarsQ];
-    }
-
-
-    if (widget.explanation) {
-      _selectedOption = 2; // Mars in test/explanation route
-      _hasAnswered = true;
-      _correctCount = 1;
+  /// Records the attempt as started before any question is answered, so an
+  /// abandoned quiz is still visible to analytics (roadmap §5.3). A failure
+  /// here just leaves [_attemptId] null — the quiz still plays locally, it
+  /// simply won't have a server-side record (matching the previous
+  /// best-effort submit behavior).
+  Future<void> _startAttempt(int quizId) async {
+    try {
+      _attemptId = await QuizApiService.instance.startAttempt(quizId);
+    } catch (e) {
+      debugPrint('Quiz start-attempt note: $e');
     }
   }
 
@@ -154,28 +175,35 @@ class _QuestionScreenState extends State<QuestionScreen> {
       }
     });
 
+    _syncAnswer(currentQ, index);
     _startCountdown();
   }
 
-  Question get _currentQuestion =>
-      _questions.isNotEmpty ? _questions[_currentIndex] : _fallbackQuestion;
+  /// Best-effort sync of one answer as the user picks it, so a killed app or
+  /// dropped connection right before [_finishQuiz] still leaves this answer
+  /// recorded server-side. Only fires for genuine taps (not for a question
+  /// the user skipped via the countdown timing out) — an unrecorded answer
+  /// correctly counts as unanswered when the attempt is submitted.
+  void _syncAnswer(Question question, int selectedIndex) {
+    final attemptId = _attemptId;
+    final questionId = question.remoteId;
+    final optionIds = question.remoteOptionIds;
+    if (attemptId == null ||
+        questionId == null ||
+        optionIds == null ||
+        selectedIndex >= optionIds.length) {
+      return;
+    }
+    QuizApiService.instance
+        .saveAnswer(
+          attemptId: attemptId,
+          questionId: questionId,
+          selectedOptionId: optionIds[selectedIndex],
+        )
+        .catchError((e) => debugPrint('Answer sync note: $e'));
+  }
 
-  Question get _fallbackQuestion => Question(
-        id: 'FALLBACK_01',
-        language: 'English',
-        category: 'Science',
-        subtopic: 'Planets & Solar System',
-        difficulty: 'Easy',
-        question: AppStrings.t('q_red_planet'),
-        optionA: AppStrings.t('venus'),
-        optionB: AppStrings.t('mercury'),
-        optionC: AppStrings.t('mars'),
-        optionD: AppStrings.t('jupiter'),
-        correctOption: 'C',
-        correctAnswer: AppStrings.t('mars'),
-        meaning: AppStrings.t('mars_desc_title'),
-        explanation: AppStrings.t('mars_desc_body'),
-      );
+  Question get _currentQuestion => _questions[_currentIndex];
 
   void _nextQuestion() {
     _countdownTimer?.cancel();
@@ -233,40 +261,49 @@ class _QuestionScreenState extends State<QuestionScreen> {
     }
   }
 
+  /// Mirrors config('quiz.performance_thresholds')'s tiers — only used as an
+  /// offline fallback; the server's PerformanceMessageService is always
+  /// authoritative when reachable.
+  String _localPerformanceState(int percentage) {
+    if (percentage >= 90) return 'excellent';
+    if (percentage >= 70) return 'good';
+    if (percentage >= 50) return 'average';
+    return 'low';
+  }
+
   void _finishQuiz() async {
     _countdownTimer?.cancel();
     var total = _questions.length;
     var right = _correctCount;
     var wrong = _wrongCount > 0 ? _wrongCount : (total - right);
     var pct = total > 0 ? ((right / total) * 100).round() : 0;
+    double? accuracy;
+    int? timeTakenSeconds;
+    // Best-effort fallback if the attempt can't be submitted (e.g. offline):
+    // approximate the same tiers the server uses so the message still
+    // reflects this run's real performance rather than a fixed default.
+    // Overwritten with the authoritative value below on a successful submit.
+    var performanceState = _localPerformanceState(pct);
+    var quizRanking = QuizRanking.empty;
 
-    final quizId = _quizId;
-    if (quizId != null &&
-        _questions.isNotEmpty &&
-        _questions.every((q) => q.remoteId != null)) {
-      final answers = <int, int>{};
-      for (var i = 0; i < _questions.length; i++) {
-        final selectedIndex = _userAnswers[i];
-        final optionIds = _questions[i].remoteOptionIds;
-        if (selectedIndex != null &&
-            optionIds != null &&
-            selectedIndex < optionIds.length) {
-          answers[_questions[i].remoteId!] = optionIds[selectedIndex];
-        }
-      }
-
+    final attemptId = _attemptId;
+    if (attemptId != null) {
       try {
-        final result = await QuizApiService.instance.submitQuiz(
-          quizId: quizId,
-          answers: answers,
-        );
+        final result = await QuizApiService.instance.submitAttempt(attemptId);
         final serverTotal = (result['total_questions'] as num?)?.toInt();
         final serverRight = (result['correct_answers'] as num?)?.toInt();
         if (serverTotal != null && serverRight != null) {
           total = serverTotal;
           right = serverRight;
-          wrong = serverTotal - serverRight;
+          wrong = (result['wrong_answers'] as num?)?.toInt() ?? (serverTotal - serverRight);
           pct = (result['percentage'] as num?)?.round() ?? pct;
+        }
+        accuracy = (result['accuracy'] as num?)?.toDouble();
+        timeTakenSeconds = (result['time_taken_seconds'] as num?)?.toInt();
+        performanceState = result['performance_state'] as String? ?? performanceState;
+        final rankingJson = result['quiz_ranking'] as Map<String, dynamic>?;
+        if (rankingJson != null) {
+          quizRanking = QuizRanking.fromJson(rankingJson);
         }
       } catch (e) {
         // Network dropped right at the end: still show the locally tallied
@@ -284,6 +321,10 @@ class _QuestionScreenState extends State<QuestionScreen> {
         rightCount: right,
         wrongCount: wrong,
         scorePercentage: pct,
+        accuracy: accuracy,
+        timeTakenSeconds: timeTakenSeconds,
+        performanceState: performanceState,
+        quizRanking: quizRanking,
       ),
     );
   }
@@ -370,42 +411,82 @@ class _QuestionScreenState extends State<QuestionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoadingRemote) {
-      return const Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(
-          child: CircularProgressIndicator(color: QuizColors.purple),
-        ),
-      );
-    }
-
-    if (_remoteLoadError) {
-      return Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.wifi_off_rounded, color: QuizColors.purple, size: 40),
-              const SizedBox(height: 12),
-              const Text(
-                'Could not load this quiz. Check your connection and try again.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontFamily: 'Poppins', fontSize: 13.5, color: Color(0xFF757575)),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => _loadRemoteQuestions(_quizId!),
-                style: ElevatedButton.styleFrom(backgroundColor: QuizColors.purple),
-                child: const Text('Retry', style: TextStyle(color: Colors.white)),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Go back'),
-              ),
-            ],
+    if (_isLoadingRemote || _remoteLoadError || _questions.isEmpty) {
+      return DesignCanvas(
+        adAfter: 600,
+        topColor: const Color(0xFF31005C),
+        children: [
+          const Positioned.fill(child: QuestionBackground()),
+          label(
+            'Quizs',
+            159,
+            24,
+            32,
+            color: Colors.white,
+            family: 'Quizlo',
+            lineHeight: 1.44,
           ),
-        ),
+          backButton(context, compact: true),
+          panel(46, 160, 320, 260, Colors.white, radius: 18),
+          at(
+            46,
+            160,
+            320,
+            260,
+            Center(
+              child: _isLoadingRemote
+                  ? const CircularProgressIndicator(color: QuizColors.purple)
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.quiz_outlined,
+                              color: QuizColors.purple, size: 44),
+                          const SizedBox(height: 12),
+                          Text(
+                            _remoteLoadError
+                                ? 'Could not load quiz questions.\nPlease check your connection and try again.'
+                                : 'No questions found for this quiz.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF424242),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          if (_quizId != null)
+                            ElevatedButton(
+                              onPressed: () => _loadRemoteQuestions(_quizId!),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: QuizColors.purple,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text('Retry',
+                                  style: TextStyle(color: Colors.white)),
+                            )
+                          else
+                            ElevatedButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: QuizColors.purple,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text('Go back',
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                        ],
+                      ),
+                    ),
+            ),
+          ),
+        ],
       );
     }
 

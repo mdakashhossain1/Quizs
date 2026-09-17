@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_client.dart';
+import 'device_id.dart';
 
 /// Thrown by [AuthService.login] when the account exists and the password is
 /// correct, but the email hasn't been OTP-verified yet.
@@ -22,42 +26,73 @@ class AuthService extends ChangeNotifier {
   static const String _keyUserEmail = 'auth_user_email';
   static const String _keyUserName = 'auth_user_name';
   static const String _keyUserPhoto = 'auth_user_photo';
-  static const String _keyAuthToken = 'auth_token';
+  static const String _keyAuthTokenSecure = 'auth_token';
+
+  final _secureStorage = const FlutterSecureStorage();
 
   SharedPreferences? _prefs;
   bool _isLoggedIn = false;
+  bool _mustChangePassword = false;
   String? _userEmail;
   String? _userName;
   String? _userPhoto;
   String? _authToken;
+  int _heartbeatIntervalSeconds = 45;
   bool _isInitialized = false;
 
   bool get isInitialized => _isInitialized;
   bool get isLoggedIn => _isLoggedIn;
+  bool get mustChangePassword => _mustChangePassword;
   String get userEmail => _userEmail ?? '';
   String get userName => _userName ?? '';
   String? get userPhoto => _userPhoto;
   String? get authToken => _authToken;
+  int get heartbeatIntervalSeconds => _heartbeatIntervalSeconds;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     serverClientId:
         '317616672617-3soecg4cp1q1i1vs7al9ifqfqs5r2dfs.apps.googleusercontent.com',
   );
 
+  /// `App Open -> Read Secure Token -> Validate Token -> Valid -> Open App`;
+  /// `... -> Invalid -> Login Screen`. A validation call that fails to reach
+  /// the server (rather than an explicit 401) keeps the cached session so a
+  /// brief network hiccup doesn't strand an otherwise-valid user offline.
   Future<void> initialize() async {
     if (_isInitialized) return;
     try {
       _prefs = await SharedPreferences.getInstance();
-      _isLoggedIn = _prefs?.getBool(_keyIsLoggedIn) ?? false;
       _userEmail = _prefs?.getString(_keyUserEmail);
       _userName = _prefs?.getString(_keyUserName);
       _userPhoto = _prefs?.getString(_keyUserPhoto);
-      _authToken = _prefs?.getString(_keyAuthToken);
-      if (_authToken != null) {
-        ApiClient.instance.setToken(_authToken);
+
+      try {
+        _authToken = await _secureStorage
+            .read(key: _keyAuthTokenSecure)
+            .timeout(const Duration(seconds: 5));
+      } catch (_) {
+        _authToken = null;
       }
 
-      if (Firebase.apps.isNotEmpty) {
+      if (_authToken != null) {
+        ApiClient.instance.setToken(_authToken);
+        final cachedLoggedIn = _prefs?.getBool(_keyIsLoggedIn) ?? false;
+        try {
+          final data = await ApiClient.instance.get('/auth/me');
+          _applyUser(data['user'] as Map<String, dynamic>?);
+          _heartbeatIntervalSeconds =
+              data['heartbeat_interval_seconds'] as int? ?? _heartbeatIntervalSeconds;
+          _isLoggedIn = true;
+        } on ApiException catch (e) {
+          if (e.statusCode == 401) {
+            await _clearSession();
+          } else {
+            _isLoggedIn = cachedLoggedIn;
+          }
+        }
+      }
+
+      if (!_isLoggedIn && Firebase.apps.isNotEmpty) {
         try {
           final currentFirebaseUser = FirebaseAuth.instance.currentUser;
           if (currentFirebaseUser != null) {
@@ -73,6 +108,46 @@ class AuthService extends ChangeNotifier {
     }
     _isInitialized = true;
     notifyListeners();
+  }
+
+  void _applyUser(Map<String, dynamic>? user) {
+    if (user == null) return;
+    _userEmail = user['email'] as String? ?? _userEmail;
+    _userName = user['name'] as String? ?? _userName;
+    _userPhoto = user['avatar'] as String? ?? _userPhoto;
+    _mustChangePassword = user['must_change_password'] as bool? ?? false;
+  }
+
+  Future<void> _clearSession() async {
+    _isLoggedIn = false;
+    _mustChangePassword = false;
+    _authToken = null;
+    ApiClient.instance.setToken(null);
+    unawaited(_deleteToken());
+    try {
+      _prefs ??= await SharedPreferences.getInstance();
+      await _prefs?.setBool(_keyIsLoggedIn, false);
+    } catch (_) {}
+  }
+
+  /// Secure-storage read/write/delete run behind a timeout and are never
+  /// awaited inline in the login/logout critical path: a slow or wedged
+  /// platform channel (observed hanging under `flutter test`, where no
+  /// native secure-storage implementation is registered) must not block
+  /// sign-in/sign-out, which work fine off the in-memory token alone for the
+  /// rest of the current app session.
+  Future<void> _persistToken(String token) async {
+    try {
+      await _secureStorage
+          .write(key: _keyAuthTokenSecure, value: token)
+          .timeout(const Duration(seconds: 5));
+    } catch (_) {}
+  }
+
+  Future<void> _deleteToken() async {
+    try {
+      await _secureStorage.delete(key: _keyAuthTokenSecure).timeout(const Duration(seconds: 5));
+    } catch (_) {}
   }
 
   /// Logs in against the Laravel API. Throws [ApiException] on failure
@@ -159,15 +234,15 @@ class AuthService extends ChangeNotifier {
 
     _authToken = token;
     _isLoggedIn = true;
-    _userEmail = user['email'] as String?;
-    _userName = user['name'] as String?;
-    _userPhoto = user['avatar'] as String?;
+    _applyUser(user);
+    _heartbeatIntervalSeconds =
+        data['heartbeat_interval_seconds'] as int? ?? _heartbeatIntervalSeconds;
     ApiClient.instance.setToken(token);
+    unawaited(_persistToken(token));
 
     try {
       _prefs ??= await SharedPreferences.getInstance();
       await _prefs?.setBool(_keyIsLoggedIn, true);
-      await _prefs?.setString(_keyAuthToken, token);
       if (_userEmail != null) {
         await _prefs?.setString(_keyUserEmail, _userEmail!);
       }
@@ -181,6 +256,16 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Sets a new password for an account that logged in with a temporary one
+  /// (`mustChangePassword` is true after [login]). Throws [ApiException] on
+  /// failure.
+  Future<void> forceChangePassword({required String newPassword}) async {
+    final data = await ApiClient.instance.post('/auth/force-change-password', body: {
+      'new_password': newPassword,
+    });
+    await _applySession(data);
+  }
+
   /// Local-only session (no backend call): used as a fallback when Google
   /// sign-in succeeds with Firebase but the Laravel backend is unreachable,
   /// and by tests that need to seed a logged-in state without a server.
@@ -190,6 +275,7 @@ class AuthService extends ChangeNotifier {
     String? photoUrl,
   }) async {
     _isLoggedIn = true;
+    _mustChangePassword = false;
     _userEmail = email;
     if (name != null && name.trim().isNotEmpty) {
       _userName = name;
@@ -338,10 +424,12 @@ class AuthService extends ChangeNotifier {
   Future<void> logout() async {
     if (_authToken != null) {
       try {
-        await ApiClient.instance.post('/auth/logout');
+        final deviceId = await DeviceId.get();
+        await ApiClient.instance.post('/auth/logout', body: {'device_id': deviceId});
       } catch (_) {}
     }
     _isLoggedIn = false;
+    _mustChangePassword = false;
     _userEmail = null;
     _userName = null;
     _userPhoto = null;
@@ -357,13 +445,13 @@ class AuthService extends ChangeNotifier {
         await FirebaseAuth.instance.signOut();
       } catch (_) {}
     }
+    unawaited(_deleteToken());
     try {
       _prefs ??= await SharedPreferences.getInstance();
       await _prefs?.setBool(_keyIsLoggedIn, false);
       await _prefs?.remove(_keyUserEmail);
       await _prefs?.remove(_keyUserName);
       await _prefs?.remove(_keyUserPhoto);
-      await _prefs?.remove(_keyAuthToken);
     } catch (_) {}
     notifyListeners();
   }

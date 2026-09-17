@@ -7,12 +7,70 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../ads/banner_ad_slot.dart';
 import '../l10n/app_strings.dart';
+import '../models/question_model.dart';
+import '../services/quiz_api_service.dart';
 
 abstract final class QuizColors {
   static const purple = Color(0xFF53009C);
   static const darkPurple = Color(0xFF400078);
   static const questionPurple = Color(0xFF5800A4);
   static const green = Color(0xFF10BA65);
+}
+
+/// Today's daily-target completion (roadmap §8.1 / leaderboard-achievement
+/// roadmap §12) — fills clockwise from the top as [progress] (0.0-1.0,
+/// already capped server-side) approaches 1.0. Shared by the Profile and
+/// Achievement screens so the same ring never gets reimplemented twice.
+class DailyProgressRing extends StatelessWidget {
+  const DailyProgressRing({super.key, required this.progress, this.size = 123});
+
+  final double progress;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+        size: Size(size, size),
+        painter: _DailyProgressRingPainter(progress: progress.clamp(0.0, 1.0)),
+      );
+}
+
+class _DailyProgressRingPainter extends CustomPainter {
+  _DailyProgressRingPainter({required this.progress});
+
+  final double progress;
+  static const double _strokeWidth = 7;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = (size.shortestSide - _strokeWidth) / 2;
+
+    final track = Paint()
+      ..color = const Color(0xFFE9DFF5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = _strokeWidth
+      ..strokeCap = StrokeCap.round;
+    canvas.drawCircle(center, radius, track);
+
+    if (progress <= 0) return;
+
+    final fill = Paint()
+      ..color = const Color(0xFF00C853)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = _strokeWidth
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -math.pi / 2,
+      2 * math.pi * progress,
+      false,
+      fill,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _DailyProgressRingPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }
 
 class DesignCanvas extends StatelessWidget {
@@ -483,38 +541,55 @@ class QuestionBackground extends StatelessWidget {
 }
 
 class CategoryIcon extends StatelessWidget {
-  const CategoryIcon(this.index, {super.key});
+  const CategoryIcon(this.index, {super.key, this.category});
   final int index;
+  final QuizCategory? category;
+
+  Color _parseColor(String? hex, Color fallback) {
+    if (hex == null) return fallback;
+    try {
+      final h = hex.replaceAll('#', '').trim();
+      if (h.length == 6) return Color(int.parse('FF$h', radix: 16));
+      if (h.length == 8) return Color(int.parse(h, radix: 16));
+    } catch (_) {}
+    return fallback;
+  }
+
+  /// Single generic placeholder for any category without an admin-uploaded
+  /// image — never a per-category/slug mapping
+  /// (dynamic_quiz_category_images_brd.md §7).
+  static const _genericFallbackImage = '1-2_imgBook3.png';
 
   @override
   Widget build(BuildContext context) {
-    const backgrounds = [
+    const defaultBackgrounds = [
       Color(0xFFF3D0FF),
       Color(0xFFBCF0FF),
       Color(0xFFCCFFF2),
       Color(0xFFF1FFD0),
     ];
-    const edges = [
+    const defaultEdges = [
       Color(0xFFCA00FF),
       Color(0xFF0099FF),
       Color(0xFF00C99A),
       Color(0xFF48E300),
     ];
-    const images = [
-      '1-2_imgFlask3.png',
-      '1-2_imgBook3.png',
-      '1-2_imgGlobe1.png',
-      '1-2_imgPlanetEarth1.png',
-    ];
-    const sizes = [60.65, 46.33, 61.0, 53.0];
-    const xs = [3.37, 10.95, 2.0, 11.0];
-    const ys = [7.58, 14.32, 9.0, 7.0];
+
+    final idx = index % 4;
+    final edgeColor = category?.color != null
+        ? _parseColor(category!.color, defaultEdges[idx])
+        : defaultEdges[idx];
+    final bgColor = category?.color != null
+        ? edgeColor.withValues(alpha: 0.18)
+        : defaultBackgrounds[idx];
+    final imageUrl = category?.imageUrl;
+
     return DecoratedBox(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: edges[index].withValues(alpha: 0.38),
+            color: edgeColor.withValues(alpha: 0.35),
             blurRadius: 7,
             spreadRadius: 1,
           ),
@@ -523,19 +598,28 @@ class CategoryIcon extends StatelessWidget {
       child: ClipOval(
         child: Stack(
           children: [
-            Positioned.fill(child: ColoredBox(color: backgrounds[index])),
-            asset(
-              images[index],
-              xs[index],
-              ys[index],
-              sizes[index],
-              sizes[index],
-            ),
+            Positioned.fill(child: ColoredBox(color: bgColor)),
+            if (imageUrl != null && imageUrl.isNotEmpty)
+              Positioned.fill(
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => const Padding(
+                    padding: EdgeInsets.all(14),
+                    child: FigmaAsset(_genericFallbackImage, fit: BoxFit.contain),
+                  ),
+                ),
+              )
+            else
+              const Padding(
+                padding: EdgeInsets.all(14),
+                child: FigmaAsset(_genericFallbackImage, fit: BoxFit.contain),
+              ),
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: edges[index], width: 1.2),
+                  border: Border.all(color: edgeColor, width: 1.3),
                 ),
               ),
             ),
@@ -546,49 +630,98 @@ class CategoryIcon extends StatelessWidget {
   }
 }
 
-List<Widget> categories(
-  BuildContext context,
-  double y, {
-  bool home = false,
-}) {
-  final count = home ? 3 : 4;
-  final dx = home ? 130.3 : 87.6;
-  final iconStart = home ? 42.0 : 41.0;
-  final textStart = home ? 35.0 : 34.0;
-  return [
-    for (var i = 0; i < count; i++) ...[
-      at(iconStart + i * dx, y, 67.39, 67.39, CategoryIcon(i)),
-      label(
-        [
-          AppStrings.t('science'),
-          AppStrings.t('maths'),
-          AppStrings.t('gk'),
-          AppStrings.t('evs'),
-        ][i],
-        textStart + i * dx,
-        y + 74,
-        15,
-        color: QuizColors.purple,
-        weight: FontWeight.w500,
-        width: 82,
-        align: TextAlign.center,
-      ),
-      action(
-        context,
-        [
-          AppStrings.t('science_quizzes'),
-          AppStrings.t('maths_quizzes'),
-          AppStrings.t('gk_quizzes'),
-          AppStrings.t('evs_quizzes'),
-        ][i],
-        ['/science', '/mathematics', '/gk', '/science'][i],
-        textStart + i * dx,
-        y - 4,
-        82,
-        105,
-      ),
-    ],
-  ];
+class HomeCategoriesRow extends StatelessWidget {
+  const HomeCategoriesRow({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: AppLanguage.instance,
+      builder: (context, _) => FutureBuilder<List<QuizCategory>>(
+        future: QuizApiService.instance.getCategories(),
+        builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(
+              4,
+              (i) => Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 67.39,
+                    height: 67.39,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.purple.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 55,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(6),
+                      color: Colors.purple.withValues(alpha: 0.08),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final cats = snapshot.data ?? const [];
+        if (cats.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final displayCats = cats.take(4).toList();
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < displayCats.length; i++)
+              GestureDetector(
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/categories/${displayCats[i].id}',
+                  arguments: displayCats[i],
+                ),
+                child: SizedBox(
+                  width: 82,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 67.39,
+                        height: 67.39,
+                        child: CategoryIcon(i % 4, category: displayCats[i]),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        displayCats[i].localizedName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: QuizColors.purple,
+                          height: 1.15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    ),
+  );
+  }
 }
 
 class QuizCard extends StatelessWidget {

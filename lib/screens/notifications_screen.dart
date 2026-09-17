@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
+import '../services/notification_navigation.dart';
+import '../services/notifications_service.dart';
 import '../widgets/design_widgets.dart';
 import '../widgets/quiz_bottom_nav.dart';
 
@@ -12,79 +14,92 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  int _selectedFilter = 0; // 0: All, 1: Challenges, 2: Rewards
+  int _selectedFilter = 0; // 0: All, 1: Quizs, 2: Rewards
+  List<AppNotification> _notifications = const [];
+  bool _loading = true;
+  bool _loadFailed = false;
 
-  final List<_NotificationItem> _notifications = [
-    _NotificationItem(
-      id: '1',
-      titleKey: 'notif_sprint_title',
-      messageKey: 'notif_sprint_desc',
-      timeKey: 'time_10m',
-      type: _NotificationType.challenge,
-      isUnread: true,
-      route: '/question',
-    ),
-    _NotificationItem(
-      id: '2',
-      titleKey: 'notif_rank_title',
-      messageKey: 'notif_rank_desc',
-      timeKey: 'time_2h',
-      type: _NotificationType.rank,
-      isUnread: true,
-      route: '/dashboard',
-    ),
-    _NotificationItem(
-      id: '3',
-      titleKey: 'notif_quiz_title',
-      messageKey: 'notif_quiz_desc',
-      timeKey: 'time_1d',
-      type: _NotificationType.quiz,
-      isUnread: false,
-      route: '/mathematics',
-    ),
-    _NotificationItem(
-      id: '4',
-      titleKey: 'notif_reward_title',
-      messageKey: 'notif_reward_desc',
-      timeKey: 'time_3d',
-      type: _NotificationType.reward,
-      isUnread: false,
-      route: '/profile',
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
-  void _markAllAsRead() {
+  Future<void> _load() async {
     setState(() {
-      for (final n in _notifications) {
-        n.isUnread = false;
-      }
+      _loading = true;
+      _loadFailed = false;
     });
+    try {
+      final notifications = await NotificationsService.instance.fetch();
+      if (!mounted) return;
+      setState(() {
+        _notifications = notifications;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loadFailed = true;
+        _loading = false;
+      });
+    }
+  }
+
+  void _showSnack(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppStrings.t('all_notifs_read')),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2), behavior: SnackBarBehavior.floating),
     );
+  }
+
+  Future<void> _markAllAsRead() async {
+    final previous = _notifications;
+    final hadUnread = previous.any((n) => !n.isRead);
+    if (!hadUnread) return;
+
+    setState(() {
+      _notifications = [for (final n in previous) n.copyWith(isRead: true)];
+    });
+
+    try {
+      await NotificationsService.instance.markAllRead();
+      _showSnack(AppStrings.t('all_notifs_read'));
+    } catch (_) {
+      // Roll back: the backend never confirmed the change, so the UI must
+      // not keep claiming everything is read.
+      if (mounted) setState(() => _notifications = previous);
+      _showSnack('Could not mark notifications as read. Please try again.');
+    }
+  }
+
+  Future<void> _openNotification(AppNotification item) async {
+    if (!item.isRead) {
+      final previous = _notifications;
+      setState(() {
+        _notifications = [for (final n in previous) n.id == item.id ? n.copyWith(isRead: true) : n];
+      });
+
+      try {
+        await NotificationsService.instance.markRead(item.id);
+      } catch (_) {
+        if (mounted) setState(() => _notifications = previous);
+      }
+    }
+    if (mounted) {
+      await openNotificationDestination(
+        context,
+        destinationType: item.destinationType,
+        destinationId: item.destinationId,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final filteredNotifications = switch (_selectedFilter) {
-      1 => _notifications
-          .where(
-            (n) =>
-                n.type == _NotificationType.challenge ||
-                n.type == _NotificationType.quiz,
-          )
-          .toList(),
-      2 => _notifications
-          .where(
-            (n) =>
-                n.type == _NotificationType.rank ||
-                n.type == _NotificationType.reward,
-          )
-          .toList(),
+      1 => _notifications.where((n) => n.destinationType == 'quiz_details').toList(),
+      2 => _notifications.where((n) => n.destinationType == 'achievement').toList(),
       _ => _notifications,
     };
 
@@ -102,6 +117,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Navigator.pushNamed(context, '/dashboard');
           } else if (index == 2) {
             Navigator.pushNamed(context, '/profile');
+          } else if (index == 3) {
+            Navigator.pushNamed(context, '/attendance');
           }
         },
       ),
@@ -139,14 +156,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 const SizedBox(width: 8),
                 _FilterChip(
                   label: AppStrings.t('quizs_filter'),
-                  count: 2,
+                  count: _notifications.where((n) => n.destinationType == 'quiz_details').length,
                   isSelected: _selectedFilter == 1,
                   onTap: () => setState(() => _selectedFilter = 1),
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
                   label: AppStrings.t('rewards_filter'),
-                  count: 2,
+                  count: _notifications.where((n) => n.destinationType == 'achievement').length,
                   isSelected: _selectedFilter == 2,
                   onTap: () => setState(() => _selectedFilter = 2),
                 ),
@@ -168,59 +185,65 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ),
 
-        // Notifications List Cards
-        for (var i = 0; i < filteredNotifications.length; i++) ...[
+        if (_loading)
+          at(24, 290, 364, 60, const Center(child: CircularProgressIndicator(color: QuizColors.purple)))
+        else if (_loadFailed)
           at(
             24,
-            254 + i * 106,
+            290,
             364,
-            96,
-            AnimatedSection(
-              delay: Duration(milliseconds: 70 + i * 50),
-              child: _NotificationCard(
-                item: filteredNotifications[i],
-                onTap: () {
-                  setState(() => filteredNotifications[i].isUnread = false);
-                  if (filteredNotifications[i].route != null) {
-                    Navigator.pushNamed(
-                      context,
-                      filteredNotifications[i].route!,
-                    );
-                  }
-                },
+            60,
+            Center(
+              child: Text(
+                'Could not load notifications. Pull to refresh.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Color(0xFF9E9E9E)),
               ),
             ),
-          ),
-        ],
+          )
+        else if (filteredNotifications.isEmpty)
+          at(
+            24,
+            290,
+            364,
+            60,
+            Center(
+              child: Text(
+                AppStrings.t('no_notifications'),
+                style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF9E9E9E)),
+              ),
+            ),
+          )
+        else
+          for (var i = 0; i < filteredNotifications.length; i++)
+            at(
+              24,
+              254 + i * 106,
+              364,
+              96,
+              AnimatedSection(
+                delay: Duration(milliseconds: 70 + i * 50),
+                child: _NotificationCard(
+                  item: filteredNotifications[i],
+                  onTap: () => _openNotification(filteredNotifications[i]),
+                ),
+              ),
+            ),
       ],
     );
   }
 }
 
-enum _NotificationType { challenge, rank, quiz, reward }
-
-class _NotificationItem {
-  _NotificationItem({
-    required this.id,
-    required this.titleKey,
-    required this.messageKey,
-    required this.timeKey,
-    required this.type,
-    required this.isUnread,
-    this.route,
-  });
-
-  final String id;
-  final String titleKey;
-  final String messageKey;
-  final String timeKey;
-  final _NotificationType type;
-  bool isUnread;
-  final String? route;
-
-  String get title => AppStrings.t(titleKey);
-  String get message => AppStrings.t(messageKey);
-  String get time => AppStrings.t(timeKey);
+/// Compact "2h ago" / "3d ago" style relative time for a notification's
+/// server timestamp — no fixed demo strings, always derived from the real
+/// `created_at` the backend returned.
+String _relativeTime(DateTime time) {
+  final diff = DateTime.now().difference(time);
+  if (diff.inMinutes < 1) return 'now';
+  if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+  if (diff.inHours < 24) return '${diff.inHours}h ago';
+  if (diff.inDays < 30) return '${diff.inDays}d ago';
+  return '${time.day}/${time.month}/${time.year}';
 }
 
 class _FilterChip extends StatelessWidget {
@@ -262,14 +285,14 @@ class _FilterChip extends StatelessWidget {
 class _NotificationCard extends StatelessWidget {
   const _NotificationCard({required this.item, required this.onTap});
 
-  final _NotificationItem item;
+  final AppNotification item;
   final VoidCallback onTap;
 
-  Color get _accentColor => switch (item.type) {
-    _NotificationType.challenge => const Color(0xFF6703BF),
-    _NotificationType.rank => const Color(0xFFFF9800),
-    _NotificationType.quiz => const Color(0xFF10BA65),
-    _NotificationType.reward => const Color(0xFF8E24AA),
+  Color get _accentColor => switch (item.destinationType) {
+    'quiz_details' => const Color(0xFF10BA65),
+    'achievement' => const Color(0xFF8E24AA),
+    'attendance' => const Color(0xFFFF9800),
+    _ => const Color(0xFF6703BF),
   };
 
   @override
@@ -281,19 +304,15 @@ class _NotificationCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: item.isUnread ? const Color(0xFFFAF7FE) : Colors.white,
+          color: item.isRead ? Colors.white : const Color(0xFFFAF7FE),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: item.isUnread
-                ? const Color(0x306703BF)
-                : const Color(0x14000000),
-            width: item.isUnread ? 1.2 : 1,
+            color: item.isRead ? const Color(0x14000000) : const Color(0x306703BF),
+            width: item.isRead ? 1 : 1.2,
           ),
           boxShadow: [
             BoxShadow(
-              color: item.isUnread
-                  ? const Color(0x0C6703BF)
-                  : const Color(0x06000000),
+              color: item.isRead ? const Color(0x06000000) : const Color(0x0C6703BF),
               offset: const Offset(0, 3),
               blurRadius: 8,
             ),
@@ -302,7 +321,6 @@ class _NotificationCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Icon badge
             Container(
               width: 40,
               height: 40,
@@ -313,13 +331,11 @@ class _NotificationCard extends StatelessWidget {
               child: Center(
                 child: CustomPaint(
                   size: const Size(20, 20),
-                  painter: _NotificationIconPainter(item.type, _accentColor),
+                  painter: _NotificationIconPainter(item.destinationType, _accentColor),
                 ),
               ),
             ),
             const SizedBox(width: 12),
-
-            // Text contents
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -333,9 +349,7 @@ class _NotificationCard extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 13,
-                            fontWeight: item.isUnread
-                                ? FontWeight.w700
-                                : FontWeight.w600,
+                            fontWeight: item.isRead ? FontWeight.w600 : FontWeight.w700,
                             color: const Color(0xFF1E1E1E),
                           ),
                           maxLines: 1,
@@ -344,7 +358,7 @@ class _NotificationCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        item.time,
+                        _relativeTime(item.createdAt),
                         style: const TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 10,
@@ -356,7 +370,7 @@ class _NotificationCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    item.message,
+                    item.body,
                     style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 11,
@@ -370,18 +384,13 @@ class _NotificationCard extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Unread dot
-            if (item.isUnread) ...[
+            if (!item.isRead) ...[
               const SizedBox(width: 8),
               Container(
                 width: 8,
                 height: 8,
                 margin: const EdgeInsets.only(top: 4),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: QuizColors.purple,
-                ),
+                decoration: const BoxDecoration(shape: BoxShape.circle, color: QuizColors.purple),
               ),
             ],
           ],
@@ -392,8 +401,8 @@ class _NotificationCard extends StatelessWidget {
 }
 
 class _NotificationIconPainter extends CustomPainter {
-  const _NotificationIconPainter(this.type, this.color);
-  final _NotificationType type;
+  const _NotificationIconPainter(this.destinationType, this.color);
+  final String destinationType;
   final Color color;
 
   @override
@@ -408,37 +417,8 @@ class _NotificationIconPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    switch (type) {
-      case _NotificationType.challenge:
-        // Flame / lightning bolt icon
-        final path = Path()
-          ..moveTo(w * 0.55, h * 0.1)
-          ..lineTo(w * 0.25, h * 0.55)
-          ..lineTo(w * 0.5, h * 0.55)
-          ..lineTo(w * 0.45, h * 0.9)
-          ..lineTo(w * 0.75, h * 0.45)
-          ..lineTo(w * 0.5, h * 0.45)
-          ..close();
-        canvas.drawPath(path, paint..style = PaintingStyle.fill);
-        break;
-
-      case _NotificationType.rank:
-        // Trophy icon
-        final cup = Path()
-          ..moveTo(w * 0.25, h * 0.2)
-          ..lineTo(w * 0.75, h * 0.2)
-          ..lineTo(w * 0.7, h * 0.55)
-          ..arcToPoint(
-            Offset(w * 0.3, h * 0.55),
-            radius: Radius.circular(w * 0.25),
-          )
-          ..close();
-        canvas.drawPath(cup, paint);
-        canvas.drawLine(Offset(w * 0.5, h * 0.65), Offset(w * 0.5, h * 0.8), paint);
-        canvas.drawLine(Offset(w * 0.3, h * 0.8), Offset(w * 0.7, h * 0.8), paint);
-        break;
-
-      case _NotificationType.quiz:
+    switch (destinationType) {
+      case 'quiz_details':
         // Question / book icon
         final book = Path()
           ..moveTo(w * 0.2, h * 0.25)
@@ -450,9 +430,8 @@ class _NotificationIconPainter extends CustomPainter {
           ..close();
         canvas.drawPath(book, paint);
         canvas.drawLine(Offset(w * 0.5, h * 0.35), Offset(w * 0.5, h * 0.85), paint);
-        break;
 
-      case _NotificationType.reward:
+      case 'achievement':
         // Star badge icon
         final star = Path()
           ..moveTo(w * 0.5, h * 0.15)
@@ -467,11 +446,32 @@ class _NotificationIconPainter extends CustomPainter {
           ..lineTo(w * 0.38, h * 0.38)
           ..close();
         canvas.drawPath(star, paint..style = PaintingStyle.fill);
-        break;
+
+      case 'attendance':
+        // Calendar/check icon
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.15, h * 0.22, w * 0.7, h * 0.65), Radius.circular(w * 0.06)),
+          paint,
+        );
+        canvas.drawLine(Offset(w * 0.3, h * 0.1), Offset(w * 0.3, h * 0.3), paint);
+        canvas.drawLine(Offset(w * 0.7, h * 0.1), Offset(w * 0.7, h * 0.3), paint);
+
+      default:
+        // Generic bell icon for target/profile/general notices
+        final bell = Path()
+          ..moveTo(w * 0.3, h * 0.75)
+          ..lineTo(w * 0.7, h * 0.75)
+          ..cubicTo(w * 0.7, h * 0.55, w * 0.65, h * 0.5, w * 0.65, h * 0.35)
+          ..cubicTo(w * 0.65, h * 0.2, w * 0.55, h * 0.12, w * 0.5, h * 0.12)
+          ..cubicTo(w * 0.45, h * 0.12, w * 0.35, h * 0.2, w * 0.35, h * 0.35)
+          ..cubicTo(w * 0.35, h * 0.5, w * 0.3, h * 0.55, w * 0.3, h * 0.75)
+          ..close();
+        canvas.drawPath(bell, paint);
+        canvas.drawLine(Offset(w * 0.42, h * 0.82), Offset(w * 0.58, h * 0.82), paint);
     }
   }
 
   @override
   bool shouldRepaint(covariant _NotificationIconPainter oldDelegate) =>
-      oldDelegate.type != type || oldDelegate.color != color;
+      oldDelegate.destinationType != destinationType || oldDelegate.color != color;
 }

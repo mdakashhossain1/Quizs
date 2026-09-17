@@ -10,6 +10,8 @@ import 'package:quizs/quizs_app.dart';
 import 'package:quizs/services/api_client.dart';
 import 'package:quizs/services/auth_service.dart';
 
+import 'support/fake_secure_storage.dart';
+
 /// Stubs the Laravel auth endpoints so widget tests exercise the real
 /// request/response path without needing a live backend.
 final _mockAuthClient = MockClient((request) async {
@@ -98,6 +100,7 @@ final _mockAuthClient = MockClient((request) async {
 
 void main() {
   setUp(() async {
+    installFakeSecureStorage();
     SharedPreferences.setMockInitialValues({});
     TestWidgetsFlutterBinding.ensureInitialized()
         .platformDispatcher

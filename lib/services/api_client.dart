@@ -23,20 +23,23 @@ class ApiClient {
   ApiClient._();
   static final ApiClient instance = ApiClient._();
 
-  // Laravel app lives in admin/ and is served by XAMPP directly from that
-  // folder (admin/index.php + admin/.htaccess route into public/ internally,
-  // the same layout used on shared hosting) — no /public in the URL.
-  // These are plain JSON endpoints (no Livewire involved), so the nested
-  // path is fine here — the admin panel's Livewire login needed its own
-  // vhost (quizs-admin.local), but that's unrelated to this API and can't
-  // be resolved from the Android emulator anyway.
-  // 10.0.2.2 is how the Android emulator reaches the host machine's localhost;
-  // a physical device needs the host's LAN IP instead.
+  // Laravel is served by XAMPP at /Quizs/admin/public/index.php.
+  // The /public segment is required in the URL because no virtual host
+  // (e.g. quizs-api.local) has been configured to rewrite it away.
+  // On the Android emulator 10.0.2.2 maps to the host machine's localhost.
+  // For a real device on the same LAN, replace 10.0.2.2 with the host's LAN IP.
+  static const String _basePath = '/Quizs/admin/public/api';
+
   static String get baseUrl {
     if (!kIsWeb && Platform.isAndroid) {
-      return 'http://10.0.2.2/Quizs/admin/api';
+      // 10.0.2.2 is how the Android emulator reaches the host machine's localhost.
+      return 'http://10.0.2.2$_basePath';
     }
-    return 'http://localhost/Quizs/admin/api';
+    if (!kIsWeb && Platform.isIOS) {
+      // iOS simulator can use localhost directly.
+      return 'http://localhost$_basePath';
+    }
+    return 'http://localhost$_basePath';
   }
 
   String? _token;
@@ -98,7 +101,8 @@ class ApiClient {
       return data;
     }
 
-    final errors = data['errors'] as Map<String, dynamic>?;
+    final rawErrors = data['errors'];
+    final errors = rawErrors is Map ? rawErrors.cast<String, dynamic>() : null;
     var message = data['message'] as String? ?? 'Something went wrong.';
     if (errors != null && errors.isNotEmpty) {
       final firstError = errors.values.first;

@@ -32,6 +32,12 @@ class QuizBottomNav extends StatelessWidget {
       type: _NavIconType.user,
       pillWidth: AppLanguage.instance.isHindi ? 122 : 106,
     ),
+    _NavItem(
+      label: AppStrings.t('attendance'),
+      actionLabel: 'Attendance',
+      type: _NavIconType.attendance,
+      pillWidth: AppLanguage.instance.isHindi ? 122 : 132,
+    ),
   ];
 
   void _onItemTapped(BuildContext context, int index) {
@@ -49,20 +55,26 @@ class QuizBottomNav extends StatelessWidget {
         case 2:
           Navigator.pushNamed(context, '/profile');
           break;
+        case 3:
+          Navigator.pushNamed(context, '/attendance');
+          break;
       }
     }
   }
 
+  /// The first/last pill hug the track's edges (12px in); anything in
+  /// between centers within its own even share of the remaining width. For
+  /// the original 3-tab layout this reduces to exactly the same numbers as
+  /// before — the formula just also works for a 4th tab.
   double _getPillLeft(int index, List<_NavItem> items) {
-    switch (index) {
-      case 0:
-        return 12;
-      case 1:
-        return (384 - items[1].pillWidth) / 2;
-      case 2:
-      default:
-        return 384 - items[2].pillWidth - 12;
+    const totalWidth = 384.0;
+    const edgeMargin = 12.0;
+    if (index == 0) return edgeMargin;
+    if (index == items.length - 1) {
+      return totalWidth - items[index].pillWidth - edgeMargin;
     }
+    final regionWidth = totalWidth / items.length;
+    return regionWidth * index + (regionWidth - items[index].pillWidth) / 2;
   }
 
   @override
@@ -175,11 +187,13 @@ class QuizBottomNav extends StatelessWidget {
         return _DashboardVector(color: color);
       case _NavIconType.user:
         return _UserVector(color: color);
+      case _NavIconType.attendance:
+        return _AttendanceVector(color: color);
     }
   }
 }
 
-enum _NavIconType { home, dashboard, user }
+enum _NavIconType { home, dashboard, user, attendance }
 
 class _NavItem {
   const _NavItem({
@@ -372,5 +386,54 @@ class _UserPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _UserPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+class _AttendanceVector extends StatelessWidget {
+  const _AttendanceVector({required this.color});
+  final Color color;
+  static const double size = 22;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+        size: const Size(size, size),
+        painter: _AttendancePainter(color),
+      );
+}
+
+class _AttendancePainter extends CustomPainter {
+  const _AttendancePainter(this.color);
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width / 22.0;
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8 * s
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(2.5 * s, 4 * s, 17 * s, 15.5 * s),
+        Radius.circular(2.5 * s),
+      ),
+      paint,
+    );
+    canvas.drawLine(Offset(2.5 * s, 9 * s), Offset(19.5 * s, 9 * s), paint);
+    canvas.drawLine(Offset(7 * s, 2 * s), Offset(7 * s, 6 * s), paint);
+    canvas.drawLine(Offset(15 * s, 2 * s), Offset(15 * s, 6 * s), paint);
+
+    final check = Path()
+      ..moveTo(7.5 * s, 14 * s)
+      ..lineTo(10 * s, 16.5 * s)
+      ..lineTo(15 * s, 11.5 * s);
+    canvas.drawPath(check, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _AttendancePainter oldDelegate) =>
       oldDelegate.color != color;
 }
