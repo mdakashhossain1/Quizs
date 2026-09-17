@@ -5,6 +5,7 @@ import '../services/notification_navigation.dart';
 import '../services/notifications_service.dart';
 import '../widgets/design_widgets.dart';
 import '../widgets/quiz_bottom_nav.dart';
+import '../widgets/shimmer_loading.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -116,9 +117,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           } else if (index == 1) {
             Navigator.pushNamed(context, '/dashboard');
           } else if (index == 2) {
-            Navigator.pushNamed(context, '/profile');
-          } else if (index == 3) {
             Navigator.pushNamed(context, '/attendance');
+          } else if (index == 3) {
+            Navigator.pushNamed(context, '/profile');
           }
         },
       ),
@@ -186,7 +187,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
 
         if (_loading)
-          at(24, 290, 364, 60, const Center(child: CircularProgressIndicator(color: QuizColors.purple)))
+          at(
+            0,
+            260,
+            412,
+            420,
+            Column(
+              children: List.generate(
+                6,
+                (i) => AnimatedSection(
+                  delay: Duration(milliseconds: i * 60),
+                  child: const NotificationCardShimmer(),
+                ),
+              ),
+            ),
+          )
         else if (_loadFailed)
           at(
             24,
@@ -204,13 +219,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         else if (filteredNotifications.isEmpty)
           at(
             24,
-            290,
+            270,
             364,
-            60,
-            Center(
-              child: Text(
-                AppStrings.t('no_notifications'),
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF9E9E9E)),
+            220,
+            AnimatedSection(
+              delay: const Duration(milliseconds: 100),
+              child: NoDataView(
+                message: AppStrings.t('no_notifications'),
+                subMessage: 'You are all caught up!',
+                imageSize: 105,
               ),
             ),
           )

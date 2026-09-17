@@ -419,7 +419,7 @@ void main() {
     await tapAction(tester, 'Profile');
     expect(find.text('Edit Profile'), findsOneWidget);
     nav = tester.widget<QuizBottomNav>(find.byType(QuizBottomNav));
-    expect(nav.initialIndex, equals(2));
+    expect(nav.initialIndex, equals(3));
 
     // Tap top back arrow
     await tapAction(tester, 'Back');

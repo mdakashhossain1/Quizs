@@ -218,3 +218,114 @@ class QuizCardShimmer extends StatelessWidget {
         ),
       );
 }
+
+// ─────────────────────────────────────────────
+// Notification row shimmer (icon + two text bars)
+// ─────────────────────────────────────────────
+class NotificationCardShimmer extends StatelessWidget {
+  const NotificationCardShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) => Shimmer(
+        baseColor: const Color(0x22BF00FF),
+        highlightColor: const Color(0x55FFFFFF),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Avatar circle
+              Container(
+                width: 42,
+                height: 42,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0x446703BF),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    ShimmerBox(width: double.infinity, height: 13, radius: 6),
+                    const SizedBox(height: 8),
+                    ShimmerBox(width: 180, height: 10, radius: 5),
+                    const SizedBox(height: 6),
+                    ShimmerBox(width: 80, height: 9, radius: 4),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+}
+
+// ─────────────────────────────────────────────
+// Profile stats row shimmer (4 stat columns)
+// ─────────────────────────────────────────────
+class ProfileStatsShimmer extends StatelessWidget {
+  const ProfileStatsShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) => Shimmer(
+        baseColor: const Color(0x22BF00FF),
+        highlightColor: const Color(0x55FFFFFF),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(
+            4,
+            (_) => Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ShimmerBox(width: 38, height: 22, radius: 6),
+                const SizedBox(height: 5),
+                ShimmerBox(width: 52, height: 11, radius: 4),
+              ],
+            ),
+          ),
+        ),
+      );
+}
+
+// ─────────────────────────────────────────────
+// Home rank card shimmer (leaderboard / achievement card)
+// ─────────────────────────────────────────────
+class HomeRankCardShimmer extends StatelessWidget {
+  const HomeRankCardShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) => Shimmer(
+        baseColor: const Color(0x22BF00FF),
+        highlightColor: const Color(0x55FFFFFF),
+        child: Container(
+          width: 139,
+          height: 142,
+          decoration: BoxDecoration(
+            color: const Color(0x18BF00FF),
+            borderRadius: BorderRadius.circular(31),
+          ),
+          child: Column(
+            children: [
+              // top coloured section placeholder
+              Container(
+                height: 84,
+                decoration: BoxDecoration(
+                  color: const Color(0x336703BF),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(29),
+                    bottom: Radius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ShimmerBox(width: 80, height: 12, radius: 4),
+              const SizedBox(height: 6),
+              ShimmerBox(width: 55, height: 16, radius: 5),
+            ],
+          ),
+        ),
+      );
+}

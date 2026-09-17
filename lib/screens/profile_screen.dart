@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../services/profile_stats_service.dart';
 import '../widgets/design_widgets.dart';
 import '../widgets/quiz_bottom_nav.dart';
+import '../widgets/shimmer_loading.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,6 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _soundEnabled = true;
   bool _notificationEnabled = true;
   ProfileStats _stats = ProfileStats.empty;
+  bool _statsLoading = true;
 
   @override
   void initState() {
@@ -39,9 +41,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadStats() async {
     try {
       final stats = await ProfileStatsService.instance.fetch();
-      if (mounted) setState(() => _stats = stats);
+      if (mounted) setState(() { _stats = stats; _statsLoading = false; });
     } catch (_) {
-      // Leave ProfileStats.empty in place rather than showing stale numbers.
+      if (mounted) setState(() => _statsLoading = false);
     }
   }
 
@@ -350,14 +352,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     color: Colors.white,
     topColor: Colors.white,
     bottomNav: QuizBottomNav(
-      initialIndex: 2,
+      initialIndex: 3,
       onTabSelected: (index) {
         if (index == 0) {
-          Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+          Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false);
         } else if (index == 1) {
           Navigator.pushReplacementNamed(context, '/categories');
-        } else if (index == 3) {
-          Navigator.pushNamed(context, '/attendance');
+        } else if (index == 2) {
+          Navigator.pushReplacementNamed(context, '/attendance');
         }
       },
 
@@ -442,31 +444,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
         56,
         AnimatedSection(
           delay: const Duration(milliseconds: 60),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _StatColumn(
-                value: '${_stats.quizPlayed}',
-                label: AppStrings.t('quiz_played_stat'),
-                valueColor: QuizColors.purple,
-              ),
-              _StatColumn(
-                value: '${_stats.right}',
-                label: AppStrings.t('right_stat'),
-                valueColor: const Color(0xFF10BA65),
-              ),
-              _StatColumn(
-                value: '${_stats.wrong}',
-                label: AppStrings.t('wrong_stat'),
-                valueColor: const Color(0xFFFF0000),
-              ),
-              _StatColumn(
-                value: '${_stats.thisMonth}',
-                label: AppStrings.t('this_month_stat'),
-                valueColor: QuizColors.purple,
-              ),
-            ],
-          ),
+          child: _statsLoading
+              ? const ProfileStatsShimmer()
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _StatColumn(
+                      value: '${_stats.quizPlayed}',
+                      label: AppStrings.t('quiz_played_stat'),
+                      valueColor: QuizColors.purple,
+                    ),
+                    _StatColumn(
+                      value: '${_stats.right}',
+                      label: AppStrings.t('right_stat'),
+                      valueColor: const Color(0xFF10BA65),
+                    ),
+                    _StatColumn(
+                      value: '${_stats.wrong}',
+                      label: AppStrings.t('wrong_stat'),
+                      valueColor: const Color(0xFFFF0000),
+                    ),
+                    _StatColumn(
+                      value: '${_stats.thisMonth}',
+                      label: AppStrings.t('this_month_stat'),
+                      valueColor: QuizColors.purple,
+                    ),
+                  ],
+                ),
         ),
       ),
 

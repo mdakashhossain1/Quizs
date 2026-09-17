@@ -142,9 +142,9 @@ class _SelectionScreenState extends State<SelectionScreen> {
                   Navigator.pushNamedAndRemoveUntil(
                       context, '/', (route) => false);
                 } else if (index == 2) {
-                  Navigator.pushReplacementNamed(context, '/profile');
+                  Navigator.pushReplacementNamed(context, '/attendance');
                 } else if (index == 3) {
-                  Navigator.pushNamed(context, '/attendance');
+                  Navigator.pushReplacementNamed(context, '/profile');
                 }
               },
             )
@@ -353,28 +353,16 @@ class _SelectionScreenState extends State<SelectionScreen> {
         if (_isCategoryView && !_isLoading && !_hasError && _topics.isEmpty)
           at(
             24,
-            startY + 20,
+            startY + 10,
             364,
-            120,
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.quiz_outlined,
-                  size: 40,
-                  color: QuizColors.purple.withValues(alpha: 0.4),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'No quizzes available in this category yet.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 13,
-                    color: Color(0xFF757575),
-                  ),
-                ),
-              ],
+            200,
+            const AnimatedSection(
+              delay: Duration(milliseconds: 100),
+              child: NoDataView(
+                message: 'No quizzes available in this category yet.',
+                subMessage: 'Check back soon for new quizzes!',
+                imageSize: 105,
+              ),
             ),
           ),
 

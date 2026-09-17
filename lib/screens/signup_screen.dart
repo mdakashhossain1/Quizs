@@ -21,6 +21,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _passwordController = TextEditingController();
   bool _agreeTerms = true;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
@@ -110,10 +111,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _handleGoogleSignUp() async {
+    setState(() => _isGoogleLoading = true);
     final success = await AuthService.instance.signInWithGoogle();
     if (success && mounted) {
       Navigator.of(context).pushReplacementNamed('/');
     } else if (mounted) {
+      setState(() => _isGoogleLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Google Sign-In was not completed'),
@@ -288,6 +291,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           GoogleWideButton(
                             text: AppStrings.t('continue_with_google'),
                             onPressed: _handleGoogleSignUp,
+                            isLoading: _isGoogleLoading,
                           ),
                         ],
                       ),

@@ -123,105 +123,109 @@ class DesignCanvas extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final width = math.min(412.0, constraints.maxWidth);
-              final scale = width / 412;
-              final viewportHeight = constraints.maxHeight;
-              var bannerTop = math.max(adTop * scale, adAfter * scale + 12);
-              if (adBefore != null) {
-                bannerTop = math.min(
-                  bannerTop,
-                  adBefore! * scale - BannerAdSlot.height - 12,
+                final scale = width / 412;
+                final viewportHeight = constraints.maxHeight;
+                var bannerTop = math.max(adTop * scale, adAfter * scale + 12);
+                if (adBefore != null) {
+                  bannerTop = math.min(
+                    bannerTop,
+                    adBefore! * scale - BannerAdSlot.height - 12,
+                  );
+                }
+                final virtualCanvasHeight = math.max(
+                  917.0,
+                  (adAfter > 0 ? (adAfter + (bottomNav != null ? 110.0 : 80.0)) : 917.0),
                 );
-              }
-              final virtualCanvasHeight =
-                  math.max(917.0, (adAfter > 0 ? (adAfter + 80.0) : 917.0));
-              final contentHeight = math.max(
-                virtualCanvasHeight * scale,
-                bannerTop + BannerAdSlot.height + 20,
-              );
-              final canvasHeight = math.max(contentHeight, viewportHeight);
+                final contentHeight = math.max(
+                  virtualCanvasHeight * scale,
+                  bannerTop + BannerAdSlot.height + (bottomNav != null ? (96.0 * scale) : 20.0),
+                );
+                final canvasHeight = math.max(contentHeight, viewportHeight);
 
-              return Align(
-                alignment: Alignment.topCenter,
-                child: SizedBox(
-                  width: width,
-                  height: canvasHeight,
-                  child: RepaintBoundary(
-                    key: const ValueKey('design-canvas'),
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: SingleChildScrollView(
-                            padding: EdgeInsets.only(
-                              bottom: bottomNav != null ? (76 * scale) : 0,
-                            ),
-                            child: SizedBox(
-                              width: width,
-                              height: contentHeight,
-                              child: ColoredBox(
-                                color: color,
-                                child: Stack(
-                                  children: [
-                                    Positioned(
-                                      top: 0,
-                                      left: 0,
-                                      width: width,
-                                      height: virtualCanvasHeight * scale,
-                                      child: FittedBox(
-                                        fit: BoxFit.fill,
-                                        child: SizedBox(
-                                          width: 412,
-                                          height: virtualCanvasHeight,
-                                          child: Stack(
-                                            clipBehavior: Clip.none,
-                                            children: children,
+                return Align(
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(
+                    width: width,
+                    height: canvasHeight,
+                    child: RepaintBoundary(
+                      key: const ValueKey('design-canvas'),
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: SingleChildScrollView(
+                              padding: EdgeInsets.only(
+                                bottom: bottomNav != null ? (96 * scale) : 20,
+                              ),
+                              child: SizedBox(
+                                width: width,
+                                height: contentHeight,
+                                child: ColoredBox(
+                                  color: color,
+                                  child: Stack(
+                                    children: [
+                                      Positioned(
+                                        top: 0,
+                                        left: 0,
+                                        width: width,
+                                        height: virtualCanvasHeight * scale,
+                                        child: FittedBox(
+                                          fit: BoxFit.fill,
+                                          child: SizedBox(
+                                            width: 412,
+                                            height: virtualCanvasHeight,
+                                            child: Stack(
+                                              clipBehavior: Clip.none,
+                                              children: children,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    Positioned(
-                                      left: 0,
-                                      right: 0,
-                                      top: bannerTop,
-                                      height: BannerAdSlot.height,
-                                      child: BannerAdSlot(
-                                        isDark: darkBanner ??
-                                            (color == QuizColors.darkPurple ||
-                                                topColor ==
-                                                    const Color(0xFF31005C) ||
-                                                ThemeData
-                                                        .estimateBrightnessForColor(
-                                                          color,
-                                                        ) ==
-                                                    Brightness.dark),
+                                      Positioned(
+                                        left: 0,
+                                        right: 0,
+                                        top: bannerTop,
+                                        height: BannerAdSlot.height,
+                                        child: BannerAdSlot(
+                                          isDark: darkBanner ??
+                                              (color == QuizColors.darkPurple ||
+                                                  topColor ==
+                                                      const Color(0xFF31005C) ||
+                                                  ThemeData
+                                                          .estimateBrightnessForColor(
+                                                            color,
+                                                          ) ==
+                                                      Brightness.dark),
+                                        ),
                                       ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (bottomNav != null)
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: math.max(14.0, 18.0 * scale),
+                              child: SafeArea(
+                                top: false,
+                                child: Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(maxWidth: 384),
+                                      child: bottomNav!,
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                        if (bottomNav != null)
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: math.max(14.0, 18.0 * scale),
-                            child: Align(
-                              alignment: Alignment.bottomCenter,
-                              child: SizedBox(
-                                width: 384 * scale,
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: bottomNav!,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
+                );
             },
           ),
         ),
@@ -292,10 +296,19 @@ Widget label(
 );
 
 class FigmaAsset extends StatelessWidget {
-  const FigmaAsset(this.name, {super.key, this.color, this.fit = BoxFit.fill});
+  const FigmaAsset(
+    this.name, {
+    super.key,
+    this.color,
+    this.fit = BoxFit.fill,
+    this.width,
+    this.height,
+  });
   final String name;
   final Color? color;
   final BoxFit fit;
+  final double? width;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -304,6 +317,8 @@ class FigmaAsset extends StatelessWidget {
         ? SvgPicture.asset(
             path,
             fit: fit,
+            width: width,
+            height: height,
             colorFilter: color == null
                 ? null
                 : ColorFilter.mode(color!, BlendMode.srcIn),
@@ -311,6 +326,8 @@ class FigmaAsset extends StatelessWidget {
         : Image.asset(
             path,
             fit: fit,
+            width: width,
+            height: height,
             color: color,
             colorBlendMode: BlendMode.srcIn,
             filterQuality: FilterQuality.medium,
@@ -326,7 +343,101 @@ Widget asset(
   double width,
   double height, {
   Color? color,
-}) => at(x, y, width, height, FigmaAsset(name, color: color));
+}) => at(x, y, width, height, FigmaAsset(name, color: color, width: width, height: height));
+
+/// Reusable Empty State widget featuring the user's no_data.svg illustration.
+class NoDataView extends StatelessWidget {
+  const NoDataView({
+    super.key,
+    required this.message,
+    this.subMessage,
+    this.imageSize = 100,
+    this.retryText,
+    this.onRetry,
+  });
+
+  final String message;
+  final String? subMessage;
+  final double imageSize;
+  final String? retryText;
+  final VoidCallback? onRetry;
+
+  static const String noDataSvg = '''<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" x="0" y="0" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512" xml:space="preserve" fill-rule="evenodd"><g><path fill="#a4a4a4" d="M422.499 326.999h-68.2c-1.825 0-43.848 1.587-81.067 2.452 0 1.374-20.842 1.178-45.412.483a202 202 0 0 1-5.95-.176C188.712 328.741 151.415 327 149.6 327H89.5c-49.4 0-89.5-40.2-89.5-89.498 0-46.8 36.3-85.5 82.3-89.2-.401-3.3-.5-6.5-.5-9.7 0-49.4 40.2-89.5 89.5-89.5 34.699 0 66.3 20.3 81 51.3 15.198-10.9 33.399-16.8 52.198-16.8 20.3 0 40.2 7 56 19.7 14.3 11.5 24.8 27.2 29.9 44.7l32.101-.001c49.4 0 89.5 40.2 89.5 89.5s-40.2 89.499-89.5 89.499"/><path fill="#f0f0f0" d="M354.299 462.898H149.6c-3.3 0-6-2.7-6-6V239.8c0-1.7.7-3.3 1.9-4.4l51.2-47.5c1.1-1 2.6-1.6 4.1-1.6h153.499c3.3 0 6 2.7 6 6v142.597c0 1.363 5.745 18.647 12.256 38.46l3.245-1.16c.702 0 .405 3.701-.495 9.546 8.492 25.958 17.103 53.018 15.356 53.018-1.41 0-9.359-17.655-17.997-38.122-4.654 24.262-12.265 58.153-12.265 60.258 0 3.3-2.8 6-6.1 6z"/><path fill="#d8d8d8" d="M143.6 245.8v-6c0-1.7.7-3.3 1.9-4.4l51.2-47.5c1.1-1 2.6-1.6 4.1-1.6h6v53.5c0 3.3-2.7 6-6 6z"/><path fill="#e5e5e6" d="M333.798 261.498h-38.699c-3.3 0-6-2.7-6-6v-39.499c0-3.3 2.7-6 6-6h38.699c3.3 0 6 2.7 6 6v39.499c0 3.3-2.7 6-6 6"/><g fill="#d8d8d8"><path d="M279.099 228.199H215c-3.3 0-6-2.7-6-6s2.7-6 6-6H279.1c3.3 0 6 2.7 6 6s-2.7 6-6 6M279.799 255.298h-64.1c-3.3 0-6-2.699-6-5.999s2.7-6 6-6h64.1c3.3 0 6 2.7 6 6s-2.7 5.999-6 5.999M332.099 285.198H170.101c-3.3 0-6-2.7-6-6s2.7-6 6-6h161.998c3.3 0 6 2.7 6 6s-2.7 6-6 6M333.798 312.099H171.8c-3.3 0-6-2.7-6-6s2.7-6 6-6h161.998c3.3 0 6 2.7 6 6s-2.7 6-6 6M330.999 340.898H169c-3.3 0-6-2.7-6-6s2.7-6 6-6h161.999c3.3 0 6 2.7 6 6s-2.7 6-6 6M301.199 367.698H170.701c-3.3 0-6-2.7-6-6s2.7-6 6-6h130.498c3.3 0 6 2.7 6 6s-2.7 6-6 6M167.9 396.498c-3.3 0-6-2.7-6-6s2.7-6 6-6h123.098c3.3 0 6 2.7 6 6s-2.7 6-6 6zM270.199 423.398h-100.6c-3.3 0-6-2.7-6-6s2.7-6 6-6h100.6c3.3 0 6 2.7 6 6s-2.6 6-6 6"/></g><path fill="#878787" d="M351.798 462.898c-36.9 0-67-30.1-67-67s30.101-66.999 67-66.999 67 30.1 67 67-30.1 66.999-67 66.999"/><path fill="#f0f0f0" d="M332.099 421.199c-1.6 0-3.1-.6-4.3-1.8-2.3-2.4-2.3-6.2.1-8.5l39.4-38.6c2.4-2.3 6.2-2.3 8.5.1s2.3 6.2-.1 8.5l-39.4 38.6c-1.2 1.1-2.7 1.7-4.2 1.7"/><path fill="#f0f0f0" d="M371.099 421.598c-1.6 0-3.1-.6-4.3-1.8l-38.6-39.4c-2.3-2.4-2.3-6.2.1-8.5s6.2-2.3 8.5.1l38.6 39.4c2.3 2.4 2.3 6.2-.1 8.5-1.2 1.1-2.7 1.7-4.2 1.7"/></g></svg>''';
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: imageSize,
+                height: imageSize,
+                child: SvgPicture.string(
+                  noDataSvg,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF616161),
+                  height: 1.3,
+                ),
+              ),
+              if (subMessage != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  subMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 11.5,
+                    color: Color(0xFF9E9E9E),
+                    height: 1.3,
+                  ),
+                ),
+              ],
+              if (onRetry != null) ...[
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: onRetry,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: QuizColors.purple.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      retryText ?? 'Retry',
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: QuizColors.purple,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class DesignAction extends StatelessWidget {
   const DesignAction({

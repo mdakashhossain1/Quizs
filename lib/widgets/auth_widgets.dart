@@ -30,21 +30,28 @@ class GoogleWideButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onPressed,
+    this.isLoading = false,
   });
 
   final String text;
   final VoidCallback onPressed;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) => SizedBox(
         width: double.infinity,
         height: 50,
         child: OutlinedButton(
-          onPressed: onPressed,
+          onPressed: isLoading ? null : onPressed,
           style: OutlinedButton.styleFrom(
             backgroundColor: Colors.white,
             foregroundColor: const Color(0xFF1E1E1E),
-            side: const BorderSide(color: Color(0xFFE2DCED), width: 1.2),
+            side: BorderSide(
+              color: isLoading
+                  ? const Color(0xFFD0C8DE)
+                  : const Color(0xFFE2DCED),
+              width: 1.2,
+            ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -54,15 +61,27 @@ class GoogleWideButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const GoogleLogoWidget(size: 20),
+              if (isLoading)
+                const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(QuizColors.purple),
+                  ),
+                )
+              else
+                const GoogleLogoWidget(size: 20),
               const SizedBox(width: 12),
               Text(
-                text,
-                style: const TextStyle(
+                isLoading ? 'Connecting...' : text,
+                style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF2D2D2D),
+                  color: isLoading
+                      ? const Color(0xFF9E92AB)
+                      : const Color(0xFF2D2D2D),
                 ),
               ),
             ],
@@ -255,13 +274,30 @@ class AuthPrimaryButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: Center(
               child: isLoading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
+                  ? const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          'Processing...',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
                     )
                   : Text(
                       text,

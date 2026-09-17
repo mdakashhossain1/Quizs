@@ -18,25 +18,21 @@ class QuizBottomNav extends StatelessWidget {
       label: AppStrings.t('home'),
       actionLabel: 'Home',
       type: _NavIconType.home,
-      pillWidth: AppLanguage.instance.isHindi ? 114 : 106,
     ),
     _NavItem(
       label: AppStrings.t('category'),
       actionLabel: 'Category',
       type: _NavIconType.dashboard,
-      pillWidth: AppLanguage.instance.isHindi ? 122 : 124,
-    ),
-    _NavItem(
-      label: AppStrings.t('profile'),
-      actionLabel: 'Profile',
-      type: _NavIconType.user,
-      pillWidth: AppLanguage.instance.isHindi ? 122 : 106,
     ),
     _NavItem(
       label: AppStrings.t('attendance'),
       actionLabel: 'Attendance',
       type: _NavIconType.attendance,
-      pillWidth: AppLanguage.instance.isHindi ? 122 : 132,
+    ),
+    _NavItem(
+      label: AppStrings.t('profile'),
+      actionLabel: 'Profile',
+      type: _NavIconType.user,
     ),
   ];
 
@@ -53,131 +49,118 @@ class QuizBottomNav extends StatelessWidget {
           Navigator.pushNamed(context, '/categories');
           break;
         case 2:
-          Navigator.pushNamed(context, '/profile');
+          Navigator.pushNamed(context, '/attendance');
           break;
         case 3:
-          Navigator.pushNamed(context, '/attendance');
+          Navigator.pushNamed(context, '/profile');
           break;
       }
     }
   }
 
-  /// The first/last pill hug the track's edges (12px in); anything in
-  /// between centers within its own even share of the remaining width. For
-  /// the original 3-tab layout this reduces to exactly the same numbers as
-  /// before — the formula just also works for a 4th tab.
-  double _getPillLeft(int index, List<_NavItem> items) {
-    const totalWidth = 384.0;
-    const edgeMargin = 12.0;
-    if (index == 0) return edgeMargin;
-    if (index == items.length - 1) {
-      return totalWidth - items[index].pillWidth - edgeMargin;
-    }
-    final regionWidth = totalWidth / items.length;
-    return regionWidth * index + (regionWidth - items[index].pillWidth) / 2;
-  }
-
   @override
   Widget build(BuildContext context) {
     final items = _getItems();
-    const totalWidth = 384.0;
     const totalHeight = 58.0;
-    const pillHeight = 39.0;
-    final currentIndex = initialIndex.clamp(0, items.length - 1);
-    final pillLeft = _getPillLeft(currentIndex, items);
-    final currentPillWidth = items[currentIndex].pillWidth;
-
+    final hasActive = initialIndex >= 0 && initialIndex < items.length;
+    final currentIndex = hasActive ? initialIndex : -1;
 
     return Container(
-      width: totalWidth,
       height: totalHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(29),
-        border: Border.all(color: const Color(0x0F000000), width: 0.3),
+        border: Border.all(color: const Color(0x12000000), width: 0.5),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x40000000),
-            offset: Offset(1, 2),
+            color: Color(0x24000000),
+            offset: Offset(0, 4),
+            blurRadius: 14,
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Color(0x0A53009C),
+            offset: Offset(0, 1),
             blurRadius: 4,
+            spreadRadius: 0,
           ),
         ],
       ),
-      child: Stack(
-        alignment: Alignment.centerLeft,
-        children: [
-          // Active purple pill indicator
-          Positioned(
-            left: pillLeft,
-            top: (totalHeight - pillHeight) / 2,
-            width: currentPillWidth,
-            height: pillHeight,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF6703BF),
-                borderRadius: BorderRadius.circular(54),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x336703BF),
-                    offset: Offset(0, 3),
-                    blurRadius: 6,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Interactive tab items
-          Row(
-            children: List.generate(items.length, (index) {
-              final item = items[index];
-              final isActive = currentIndex == index;
+      child: Row(
+        children: List.generate(items.length, (index) {
+          final item = items[index];
+          final isActive = currentIndex == index;
 
-              return Expanded(
-                child: DesignAction(
-                  label: item.actionLabel,
-                  onTap: () => _onItemTapped(context, index),
-                  child: Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildNavIcon(
-                          item.type,
-                          isActive ? Colors.white : const Color(0x996900C5),
-                        ),
-                        if (isActive) ...[
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: Text(
-                              item.label,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: AppLanguage.instance.isHindi
-                                    ? 12
-                                    : 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                                letterSpacing: 0,
-                                height: 1.2,
-                              ),
-                            ),
-                          ),
-                        ],
-
-                      ],
+          if (isActive) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: DesignAction(
+                label: item.actionLabel,
+                onTap: () => _onItemTapped(context, index),
+                child: Container(
+                  height: 44,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6703BF), Color(0xFF53009C)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x386703BF),
+                        offset: Offset(0, 3),
+                        blurRadius: 7,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildNavIcon(item.type, Colors.white),
+                      const SizedBox(width: 6),
+                      Text(
+                        item.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: AppLanguage.instance.isHindi ? 12 : 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          letterSpacing: 0,
+                          height: 1.2,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              );
-            }),
-          ),
-        ],
+              ),
+            );
+          }
+
+          return Expanded(
+            child: DesignAction(
+              label: item.actionLabel,
+              onTap: () => _onItemTapped(context, index),
+              child: SizedBox(
+                height: 44,
+                child: Center(
+                  child: _buildNavIcon(
+                    item.type,
+                    const Color(0x996900C5),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
       ),
     );
   }
-
 
   Widget _buildNavIcon(_NavIconType type, Color color) {
     switch (type) {
@@ -200,13 +183,11 @@ class _NavItem {
     required this.label,
     required this.actionLabel,
     required this.type,
-    required this.pillWidth,
   });
 
   final String label;
   final String actionLabel;
   final _NavIconType type;
-  final double pillWidth;
 }
 
 class _HomeVector extends StatelessWidget {
