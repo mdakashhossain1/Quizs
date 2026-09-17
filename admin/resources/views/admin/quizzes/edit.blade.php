@@ -48,6 +48,14 @@
                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
             </div>
 
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Language</label>
+                <div class="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm text-gray-600">
+                    {{ $quiz->isBilingual() ? 'Bilingual (English + Hindi)' : ($quiz->language === 'hi' ? 'Hindi only' : 'English only') }}
+                    <span class="text-xs text-gray-400">(fixed at creation)</span>
+                </div>
+            </div>
+
             <div class="grid grid-cols-3 gap-5">
                 <div>
                     <label for="duration_minutes" class="block text-sm font-medium text-gray-700 mb-1">Duration (mins) <span class="text-red-500">*</span></label>

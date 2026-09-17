@@ -69,9 +69,11 @@ All responses are formatted as JSON.
 - `GET /api/categories` — Active categories with quizzes count
 - `GET /api/categories/{id}/quizzes` — Quizzes for a category
 - `GET /api/quizzes/{id}` — Quiz questions and masked answer choices
-- `POST /api/quizzes/{id}/submit` — Submit answers, calculate score, update streak *(Bearer Token)*
+- `POST /api/quizzes/{id}/start` — Start a tracked attempt *(Bearer Token)*
+- `POST /api/attempts/{attempt}/answer` — Save/update one question's answer *(Bearer Token)*
+- `POST /api/attempts/{attempt}/submit` — Finalize the attempt, calculate score, update streak *(Bearer Token)*
 - `GET /api/leaderboard` — Global leaderboard by score & streak
-- `GET /api/user/history` — User's quiz attempts history *(Bearer Token)*
+- `GET /api/user/history` — User's completed quiz attempts history *(Bearer Token)*
 
 ---
 

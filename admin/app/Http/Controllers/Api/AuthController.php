@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Mail\OtpMail;
 use App\Models\User;
+use App\Models\UserSession;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -52,16 +53,18 @@ class AuthController extends Controller
     }
 
     /**
-     * Log in an existing, verified user.
+     * Log in an existing, verified user. The identifier may be either the
+     * account's email address or the login ID an admin assigned it.
      */
     public function login(Request $request): JsonResponse
     {
         $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $identifier = $request->string('email')->toString();
+        $user = User::where('email', $identifier)->orWhere('login_id', $identifier)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json([
@@ -95,6 +98,42 @@ class AuthController extends Controller
             'message' => 'Login successful.',
             'token' => $token,
             'user' => $user,
+            'must_change_password' => $user->must_change_password,
+            'heartbeat_interval_seconds' => config('quiz.heartbeat_interval_seconds'),
+        ]);
+    }
+
+    /**
+     * Set a new password for an account that was created by an admin with a
+     * temporary one (or had one issued via an admin-initiated reset). Any
+     * other authenticated endpoint is blocked until this succeeds.
+     */
+    public function forceChangePassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'new_password' => ['required', 'string', 'min:6'],
+        ]);
+
+        $user = $request->user();
+        $user->forceFill([
+            'password' => Hash::make($validated['new_password']),
+            'must_change_password' => false,
+        ])->save();
+
+        // Revoke the token issued at temp-password login and replace it with
+        // a full-access one now that the account is no longer restricted.
+        // Null-safe: currentAccessToken() is null under actingAs()-style
+        // sessions with no real PersonalAccessToken (see logout()).
+        $user->currentAccessToken()?->delete();
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password set successfully.',
+            'token' => $token,
+            'user' => $user,
+            'must_change_password' => false,
+            'heartbeat_interval_seconds' => config('quiz.heartbeat_interval_seconds'),
         ]);
     }
 
@@ -353,6 +392,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'user' => $user,
+            'heartbeat_interval_seconds' => config('quiz.heartbeat_interval_seconds'),
         ]);
     }
 
@@ -397,11 +437,31 @@ class AuthController extends Controller
     }
 
     /**
-     * Log out and revoke the current access token.
+     * Log out and revoke the current access token. When the client passes
+     * the device id its heartbeats have been using, the matching activity
+     * session is closed with an explicit-logout timestamp rather than being
+     * left to expire via the online timeout.
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+
+        $deviceId = $request->string('device_id')->toString();
+        if ($deviceId !== '') {
+            UserSession::where('user_id', $user->id)
+                ->where('device_id', $deviceId)
+                ->where('status', 'active')
+                ->update([
+                    'explicit_logout_at' => now(),
+                    'status' => 'ended',
+                ]);
+        }
+
+        // Null-safe: currentAccessToken() is only null for a request
+        // authenticated some other way than a real personal-access token
+        // (e.g. a stateful session guard, or an actingAs()'d test) — nothing
+        // to revoke in that case, but it must not crash the logout call.
+        $user->currentAccessToken()?->delete();
 
         return response()->json([
             'success' => true,

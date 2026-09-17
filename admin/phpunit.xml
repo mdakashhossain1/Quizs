@@ -19,6 +19,11 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <!-- The real APP_URL includes /Quizs/admin/public (no dedicated
+             vhost); Laravel's test client resolves relative request URIs
+             against APP_URL, so without this override every test would need
+             to spell out an absolute http://localhost/... URL by hand. -->
+        <env name="APP_URL" value="http://localhost"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>

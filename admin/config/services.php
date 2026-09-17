@@ -42,4 +42,14 @@ return [
         'api_key' => env('FIREBASE_API_KEY'),
     ],
 
+    'fcm' => [
+        // Firebase Cloud Messaging (HTTP v1 API), for push notifications
+        // e.g. attendance updates. Until both are set, FcmService logs the
+        // notification instead of sending it — see FcmService::isConfigured.
+        'project_id' => env('FCM_PROJECT_ID'),
+        // Absolute path to the downloaded service-account JSON credentials
+        // (Firebase Console -> Project Settings -> Service Accounts).
+        'credentials_path' => env('FCM_CREDENTIALS_PATH'),
+    ],
+
 ];
