@@ -1,0 +1,36 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Local XAMPP dev still serves the app at /admin/public/... directly
+    # (see ApiClient.baseUrl in the Flutter app) — let those requests fall
+    # through untouched to public/.htaccess + public/index.php exactly as
+    # before, instead of being redirected to this root bridge.
+    RewriteRule ^public/ - [L]
+
+    # If the request is for a real file or directory at the root
+    # (e.g. this .htaccess itself, index.php), serve it directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Category images and push-notification thumbnails
+    # (admin/config/filesystems.php's category_images / notification_thumbnails disks)
+    RewriteRule ^uploads/(.+)$ public/uploads/$1 [L,NC]
+
+    # Static assets shipped in public/
+    RewriteRule ^css/(.+)$ public/css/$1 [L,NC]
+    RewriteRule ^js/(.+)$ public/js/$1 [L,NC]
+    RewriteRule ^favicon\.ico$ public/favicon.ico [L,NC]
+    RewriteRule ^robots\.txt$ public/robots.txt [L,NC]
+
+    # Everything else goes through the root index.php
+    RewriteRule ^ index.php [L]
+</IfModule>
