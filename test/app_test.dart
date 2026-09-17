@@ -13,7 +13,6 @@ import 'package:quizs/quizs_app.dart';
 import 'package:quizs/ads/banner_ad_slot.dart';
 import 'package:quizs/services/api_client.dart';
 import 'package:quizs/services/auth_service.dart';
-import 'package:quizs/services/quiz_repository.dart';
 import 'package:quizs/widgets/design_widgets.dart';
 import 'package:quizs/widgets/quiz_bottom_nav.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,7 +50,6 @@ Map<String, dynamic> _mockQuizDetail(int quizId) => {
 
 final _quizzesByCategoryPattern = RegExp(r'/categories/(\d+)/quizzes$');
 final _quizDetailPattern = RegExp(r'/quizzes/(\d+)$');
-final _quizSubmitPattern = RegExp(r'/quizzes/(\d+)/submit$');
 
 /// Stubs the leaderboard + quiz-content endpoints so screens that fetch them
 /// (ResultsScreen, SelectionScreen, QuestionScreen) render deterministically
@@ -100,23 +98,29 @@ final _mockApiClient = MockClient((request) async {
     );
   }
 
-  final submitMatch = _quizSubmitPattern.firstMatch(request.url.path);
-  if (submitMatch != null) {
+  final detailMatch = _quizDetailPattern.firstMatch(request.url.path);
+  if (detailMatch != null) {
+    final quizId = int.parse(detailMatch.group(1)!);
+    return http.Response(
+      jsonEncode(_mockQuizDetail(quizId)),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+
+  if (request.url.path.endsWith('/profile/stats')) {
     return http.Response(
       jsonEncode({
         'success': true,
-        'result': {
-          'attempt_id': 1,
-          'score': 10,
-          'total_possible_score': 20,
-          'correct_answers': 1,
-          'total_questions': 2,
-          'percentage': 50,
-          'passed': false,
-          'passing_percentage': 60,
-          'updated_streak': 1,
-          'updated_total_score': 10,
-          'review': [],
+        'stats': {
+          'level': {'level': 20, 'xp': 1950, 'xp_into_level': 50, 'xp_for_next_level': 100, 'completed_target_days': 195},
+          'today_target': {'effective_target': 20, 'completed_quizzes': 5, 'remaining': 15, 'progress_percentage': 25, 'status': 'in_progress'},
+          'accuracy': 87,
+          'quiz_played': 132,
+          'right': 8,
+          'wrong': 2,
+          'this_month': 35,
+          'rank': 70,
         },
       }),
       200,
@@ -124,11 +128,37 @@ final _mockApiClient = MockClient((request) async {
     );
   }
 
-  final detailMatch = _quizDetailPattern.firstMatch(request.url.path);
-  if (detailMatch != null) {
-    final quizId = int.parse(detailMatch.group(1)!);
+  if (request.url.path.endsWith('/achievement')) {
     return http.Response(
-      jsonEncode(_mockQuizDetail(quizId)),
+      jsonEncode({
+        'success': true,
+        'achievement': {
+          'profile': {
+            'name': 'Test User',
+            'avatar': null,
+            'level': {'level': 20, 'xp': 1950, 'xp_into_level': 50, 'xp_for_next_level': 100},
+            'accuracy': 87,
+            'today_target': {'effective_target': 20, 'completed_quizzes': 5, 'remaining': 15, 'progress_percentage': 25, 'status': 'in_progress'},
+          },
+          'active_users': {'active_users': 42, 'active_this_month': 18},
+          'ranking': {
+            'top': [
+              {'user_id': 1, 'name': 'Test User', 'avatar': null, 'level': 20, 'xp': 1950, 'accuracy': 87, 'quiz_played': 132, 'score': 900},
+              {'user_id': 2, 'name': 'Other User', 'avatar': null, 'level': 15, 'xp': 1400, 'accuracy': 80, 'quiz_played': 90, 'score': 700},
+            ],
+            'your_rank': 1,
+            'total_eligible_users': 70,
+          },
+        },
+      }),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+
+  if (request.url.path.endsWith('/notifications')) {
+    return http.Response(
+      jsonEncode({'success': true, 'notifications': []}),
       200,
       headers: {'content-type': 'application/json'},
     );
@@ -192,7 +222,6 @@ Future<void> tapAction(WidgetTester tester, String name) async {
 void main() {
   setUpAll(() async {
     await loadFonts();
-    await QuizRepository.instance.initialize();
   });
 
   setUp(() async {
@@ -221,29 +250,30 @@ void main() {
     expect(find.text('Welcome'), findsOneWidget);
     await tapAction(tester, 'Browse categories');
     expect(find.text('Choose category'), findsOneWidget);
-    await tapAction(tester, 'Maths quizzes');
-    expect(find.text('Mathematics'), findsOneWidget);
-    // Confirms the topic list actually loaded from the (mocked) backend
-    // rather than silently falling into the error/retry state.
+    await tester.tap(find.text('Mathematics & Logic'));
+    await tester.pumpAndSettle();
     expect(find.text('Sample Quiz 1'), findsOneWidget);
-    await tapAction(tester, 'Back');
-    expect(find.text('Choose category'), findsOneWidget);
-    await tapAction(tester, 'Back');
-    expect(find.text('Welcome'), findsOneWidget);
-    await tapAction(tester, 'Join a Quiz');
-    expect(find.text('Mars'), findsOneWidget);
+    await tester.tap(find.text('Sample Quiz 1'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sample question 1?'), findsOneWidget);
+    await tapAction(tester, 'View answer explanation for Option A');
     await tapAction(tester, 'Next question');
-    expect(find.text('Mars- The red planet'), findsOneWidget);
-    await tapAction(tester, 'Next Trial');
+    expect(find.text('Sample question 2?'), findsOneWidget);
+    await tapAction(tester, 'View answer explanation for Option A');
+    await tapAction(tester, 'Next question');
     expect(find.text('Congratulations !'), findsOneWidget);
     await tapAction(tester, 'Return home');
+    expect(find.text('Welcome'), findsOneWidget);
 
     await tapAction(tester, 'Achievements');
-    expect(find.text('132'), findsOneWidget);
-    await tapAction(tester, 'Back');
+    await tester.pumpAndSettle();
+    expect(find.text('Global Ranking'), findsOneWidget);
+    expect(find.text('Other User'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded));
+    await tester.pumpAndSettle();
     expect(find.text('Welcome'), findsOneWidget);
     await tapAction(tester, 'Notifications');
-    expect(find.text('Daily Sprint Challenge is Live!'), findsOneWidget);
+    expect(find.text('No notifications yet.'), findsOneWidget);
     await tapAction(tester, 'Back');
     expect(find.text('Welcome'), findsOneWidget);
     await tapAction(tester, 'Category');
@@ -267,7 +297,6 @@ void main() {
     'notifications': '/notifications',
     'categories': '/categories',
     'mathematics': '/mathematics',
-    'achievements': '/achievements',
     'question': '/question',
     'explanation': '/explanation',
     'results': '/results',

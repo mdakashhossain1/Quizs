@@ -1,116 +1,185 @@
+import '../l10n/app_strings.dart';
 import '../models/question_model.dart';
+import '../models/quiz_ranking_model.dart';
 import 'api_client.dart';
 
-/// Fetches quiz content (categories/quizzes/questions) from the Laravel
-/// backend and submits results — the app has no local/CSV quiz data at
-/// runtime; content is managed entirely through the admin panel.
+/// Fetches all quiz content from the Laravel backend.
+/// No local/CSV data is used — all categories, quizzes, and questions
+/// are managed through the admin panel.
 class QuizApiService {
   QuizApiService._();
   static final QuizApiService instance = QuizApiService._();
 
-  static const Map<String, String> _categorySlugs = {
-    'math': 'mathematics-logic',
-    'mathematics': 'mathematics-logic',
-    'science': 'science-nature',
-    'gk': 'general-knowledge',
-  };
+  List<QuizCategory>? _categoriesCache;
 
-  List<Map<String, dynamic>>? _categoriesCache;
-
-  Future<List<Map<String, dynamic>>> _categories() async {
-    final cached = _categoriesCache;
-    if (cached != null) return cached;
-    final data = await ApiClient.instance.get('/categories');
-    final categories = (data['categories'] as List<dynamic>? ?? [])
-        .cast<Map<String, dynamic>>();
-    _categoriesCache = categories;
-    return categories;
-  }
-
-  Future<Map<String, dynamic>?> _categoryFor(String categoryKey) async {
-    final slug = _categorySlugs[categoryKey.toLowerCase()];
-    if (slug == null) return null;
-    final categories = await _categories();
-    for (final category in categories) {
-      if (category['slug'] == slug) return category;
+  /// Fetches all active categories from the backend.
+  Future<List<QuizCategory>> getCategories({bool forceRefresh = false}) async {
+    if (!forceRefresh && _categoriesCache != null) return _categoriesCache!;
+    try {
+      final data = await ApiClient.instance.get('/categories');
+      final rawList = data['categories'] ?? data['data'];
+      final list = (rawList as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
+      _categoriesCache = list.map(QuizCategory.fromJson).toList();
+      return _categoriesCache!;
+    } catch (_) {
+      if (_categoriesCache != null) return _categoriesCache!;
+      rethrow;
     }
-    return null;
   }
 
-  QuizTopic _topicFromJson(Map<String, dynamic> json, String categoryKey) {
+  /// Invalidates the category cache (call when the admin makes changes).
+  void invalidateCache() => _categoriesCache = null;
+
+  QuizTopic _topicFromJson(
+    Map<String, dynamic> json,
+    QuizCategory category,
+  ) {
     final title = json['title'] as String? ?? '';
-    final hash = title.hashCode.abs();
+    // Roadmap §10-11: Played = unique users who completed this quiz;
+    // progress = unique-user completion rate among those who started it.
+    // Both come straight from the backend now — no more per-title hashing.
+    final completionRate = (json['completion_rate'] as num?)?.toDouble() ?? 0;
     return QuizTopic(
       name: title,
-      category: categoryKey,
+      category: category.name,
       questionCount: (json['questions_count'] as num?)?.toInt() ?? 0,
-      playedCount: 180 + (hash % 350),
-      progress: 0.2 + ((hash % 3) * 0.25),
-      questions: const [],
+      playedCount: (json['played_count'] as num?)?.toInt() ?? 0,
+      progress: completionRate / 100,
       remoteQuizId: (json['id'] as num).toInt(),
+      categoryColor: category.color,
+      categorySlug: category.slug,
     );
   }
 
-  /// Fetches the quizzes in [categoryKey] for the given language.
-  /// Throws [ApiException] on failure — callers should show a retry state.
-  Future<List<QuizTopic>> getTopicsForCategory({
-    required String categoryKey,
-    required bool isHindi,
-  }) async {
-    final category = await _categoryFor(categoryKey);
-    if (category == null) return [];
-
+  /// Fetches quizzes for a specific category id.
+  Future<List<QuizTopic>> getTopicsForCategoryId(int categoryId) async {
+    final categories = await getCategories();
+    final cat = categories.firstWhere(
+      (c) => c.id == categoryId,
+      orElse: () => const QuizCategory(
+        id: 0, name: '', slug: '', color: '#6900C5', quizzesCount: 0,
+      ),
+    );
+    // Bilingual quizzes always come back regardless of language; a legacy
+    // single-language quiz only comes back for its own fixed language
+    // (bilingual_question_management_prd.md §9).
     final data = await ApiClient.instance.get(
-      '/categories/${category['id']}/quizzes?language=${isHindi ? 'hi' : 'en'}',
+      '/categories/$categoryId/quizzes?language=${AppLanguage.instance.code}',
     );
     final quizzes = (data['quizzes'] as List<dynamic>? ?? [])
         .cast<Map<String, dynamic>>();
-    return quizzes.map((q) => _topicFromJson(q, categoryKey)).toList();
+    return quizzes.map((q) => _topicFromJson(q, cat)).toList();
   }
 
-  /// A small mixed set pulled from each category, for the dashboard's
-  /// "trending" list. Throws [ApiException] if any category fetch fails.
-  Future<List<QuizTopic>> getTrendingTopics({required bool isHindi}) async {
-    final results = await Future.wait([
-      getTopicsForCategory(categoryKey: 'math', isHindi: isHindi),
-      getTopicsForCategory(categoryKey: 'science', isHindi: isHindi),
-      getTopicsForCategory(categoryKey: 'gk', isHindi: isHindi),
-    ]);
-    final math = results[0];
-    final science = results[1];
-    final gk = results[2];
+  /// Fetches quizzes for a category by slug. Used by legacy routes
+  /// (e.g. /science, /mathematics) until they are migrated to id-based routing.
+  Future<List<QuizTopic>> getTopicsForSlug(String slug) async {
+    final categories = await getCategories();
+    final cat = categories.firstWhere(
+      (c) => c.slug == slug,
+      orElse: () => categories.isNotEmpty ? categories.first : const QuizCategory(
+        id: 0, name: '', slug: '', color: '#6900C5', quizzesCount: 0,
+      ),
+    );
+    if (cat.id == 0) return [];
+    return getTopicsForCategoryId(cat.id);
+  }
 
-    final list = <QuizTopic>[];
-    if (math.isNotEmpty) list.add(math[0]);
-    if (science.isNotEmpty) list.add(science[0]);
-    if (gk.isNotEmpty) list.add(gk[0]);
-    if (math.length > 1) {
-      list.add(math[1]);
-    } else if (gk.length > 1) {
-      list.add(gk[1]);
+  /// A mixed set of quizzes — one or two per category — for dashboard trending.
+  Future<List<QuizTopic>> getTrendingTopics() async {
+    final categories = await getCategories();
+    if (categories.isEmpty) return [];
+
+    final results = await Future.wait(
+      categories.map((cat) => getTopicsForCategoryId(cat.id)),
+    );
+
+    final trending = <QuizTopic>[];
+    for (final catTopics in results) {
+      if (catTopics.isNotEmpty) trending.add(catTopics.first);
     }
-    return list;
+    // Add one more from the first category if it has extras
+    if (results.isNotEmpty && results[0].length > 1) {
+      trending.add(results[0][1]);
+    }
+    return trending;
   }
 
   /// Fetches the full question set (with options and correct answers) for
-  /// [quizId]. Throws [ApiException] on failure.
-  Future<List<Question>> fetchQuizQuestions(int quizId) async {
-    final data = await ApiClient.instance.get('/quizzes/$quizId');
+  /// [quizId] in the app's current language — a bilingual quiz's questions
+  /// come back pre-localized by the backend; a legacy single-language quiz
+  /// ignores [lang] entirely (bilingual_question_management_prd.md §9).
+  Future<List<Question>> fetchQuizQuestions(int quizId, {String? lang}) async {
+    final data = await ApiClient.instance.get(
+      '/quizzes/$quizId?lang=${lang ?? AppLanguage.instance.code}',
+    );
     final quiz = data['quiz'] as Map<String, dynamic>? ?? {};
     final questions = (quiz['questions'] as List<dynamic>? ?? [])
         .cast<Map<String, dynamic>>();
     return questions.map(Question.fromRemoteJson).toList();
   }
 
-  /// Submits final answers ({remote question id: selected remote option id})
-  /// for authoritative server-side scoring. Throws [ApiException] on failure.
-  Future<Map<String, dynamic>> submitQuiz({
-    required int quizId,
-    required Map<int, int> answers,
+  /// Starts a tracked attempt for [quizId] and returns its backend attempt id.
+  /// Recorded immediately so an abandoned quiz still shows up for analytics
+  /// even if the user never reaches [submitAttempt].
+  Future<int> startAttempt(int quizId) async {
+    final data = await ApiClient.instance.post(
+      '/quizzes/$quizId/start?lang=${AppLanguage.instance.code}',
+    );
+    final attempt = data['attempt'] as Map<String, dynamic>? ?? {};
+    final id = (attempt['id'] as num?)?.toInt();
+    if (id == null) throw Exception('Server did not return an attempt id.');
+    return id;
+  }
+
+  /// Saves (or updates) the answer for one question of an in-progress
+  /// attempt. Best-effort — callers should not block the UI on this beyond
+  /// what's needed to move to the next question.
+  Future<void> saveAnswer({
+    required int attemptId,
+    required int questionId,
+    required int selectedOptionId,
   }) async {
-    final data = await ApiClient.instance.post('/quizzes/$quizId/submit', body: {
-      'answers': answers.map((questionId, optionId) => MapEntry('$questionId', optionId)),
+    await ApiClient.instance.post('/attempts/$attemptId/answer', body: {
+      'question_id': questionId,
+      'selected_option_id': selectedOptionId,
     });
+  }
+
+  /// Finalizes [attemptId] from its already-saved answers and returns the
+  /// server-authoritative result (score/accuracy/streak/quiz ranking).
+  Future<Map<String, dynamic>> submitAttempt(int attemptId) async {
+    final data = await ApiClient.instance.post('/attempts/$attemptId/submit');
     return data['result'] as Map<String, dynamic>? ?? {};
+  }
+
+  /// Refetches quiz-specific ranking without resubmitting — e.g. to show an
+  /// up-to-date leaderboard if the result screen is revisited later.
+  Future<QuizRanking> fetchQuizRanking(int quizId) async {
+    final data = await ApiClient.instance.get('/quizzes/$quizId/ranking');
+    final ranking = data['ranking'] as Map<String, dynamic>? ?? {};
+    return QuizRanking.fromJson(ranking);
+  }
+
+  /// Builds a [QuizTopic] for a single quiz by id — used to deep-link a
+  /// push notification's `quiz_details` destination straight into that
+  /// quiz's question flow without hardcoding anything about it client-side.
+  Future<QuizTopic> fetchQuizTopic(int quizId) async {
+    final data = await ApiClient.instance.get('/quizzes/$quizId');
+    final quiz = data['quiz'] as Map<String, dynamic>? ?? {};
+    final category = quiz['category'] as Map<String, dynamic>? ?? {};
+    final questions = quiz['questions'] as List<dynamic>? ?? [];
+    final completionRate = (quiz['completion_rate'] as num?)?.toDouble() ?? 0;
+
+    return QuizTopic(
+      name: quiz['title'] as String? ?? '',
+      category: category['name'] as String? ?? '',
+      questionCount: questions.length,
+      playedCount: (quiz['played_count'] as num?)?.toInt() ?? 0,
+      progress: completionRate / 100,
+      remoteQuizId: (quiz['id'] as num).toInt(),
+      categoryColor: category['color'] as String?,
+      categorySlug: category['slug'] as String?,
+    );
   }
 }

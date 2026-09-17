@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_strings.dart';
 import '../services/auth_service.dart';
+import '../services/profile_stats_service.dart';
 import '../widgets/design_widgets.dart';
 import '../widgets/quiz_bottom_nav.dart';
 
@@ -16,11 +17,13 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _soundEnabled = true;
   bool _notificationEnabled = true;
+  ProfileStats _stats = ProfileStats.empty;
 
   @override
   void initState() {
     super.initState();
     AppLanguage.instance.addListener(_onLanguageChanged);
+    _loadStats();
   }
 
   @override
@@ -31,6 +34,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _onLanguageChanged() {
     if (mounted) setState(() {});
+  }
+
+  Future<void> _loadStats() async {
+    try {
+      final stats = await ProfileStatsService.instance.fetch();
+      if (mounted) setState(() => _stats = stats);
+    } catch (_) {
+      // Leave ProfileStats.empty in place rather than showing stale numbers.
+    }
   }
 
   static const String _privacyPolicyUrl =
@@ -344,6 +356,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
         } else if (index == 1) {
           Navigator.pushReplacementNamed(context, '/categories');
+        } else if (index == 3) {
+          Navigator.pushNamed(context, '/attendance');
         }
       },
 
@@ -362,20 +376,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       backButton(context, purple: true),
 
-      // Profile Avatar with circular progress ring
+      // Profile Avatar with a ring showing today's daily-target progress
+      // (roadmap §8.1 — distinct from Level and Accuracy below).
       asset('75-2_imgProfile6.png', 155, 106, 101, 101),
-      asset('75-2_imgEllipse36.svg', 144, 95, 123, 123),
-      asset('75-2_imgEllipse37.svg', 144, 95, 123, 123),
-      asset('75-2_imgEllipse38.svg', 257, 156, 9, 9),
+      at(
+        144,
+        95,
+        123,
+        123,
+        DailyProgressRing(progress: _stats.todayProgressPercentage / 100),
+      ),
 
-      // Level Badge (Left)
+      // Level Badge (Left) — accumulated progression from daily-target
+      // performance (roadmap §8.2), not today's progress.
       panel(52, 130, 53, 53, QuizColors.purple, radius: 30),
-      label('20', 52, 135, 24, width: 53, align: TextAlign.center, weight: FontWeight.w700, color: Colors.white),
+      label('${_stats.level}', 52, 135, 24, width: 53, align: TextAlign.center, weight: FontWeight.w700, color: Colors.white),
       label(AppStrings.t('level_label'), 52, 158, 12, width: 53, align: TextAlign.center, weight: FontWeight.w500, color: Colors.white),
 
-      // Accuracy Badge (Right)
+      // Accuracy Badge (Right) — correct-answer rate from real attempt data
+      // (roadmap §8.3), separate from both the ring and the Level.
       panel(307, 130, 53, 53, QuizColors.purple, radius: 30),
-      label('87%', 307, 140, 16, width: 53, align: TextAlign.center, weight: FontWeight.w700, color: Colors.white),
+      label('${_stats.accuracy.round()}%', 307, 140, 16, width: 53, align: TextAlign.center, weight: FontWeight.w700, color: Colors.white),
       label(AppStrings.t('accuracy_label'), 307, 158, 9, width: 53, align: TextAlign.center, weight: FontWeight.w500, color: Colors.white),
 
       // User Name with pencil edit icon
@@ -425,22 +446,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _StatColumn(
-                value: '132',
+                value: '${_stats.quizPlayed}',
                 label: AppStrings.t('quiz_played_stat'),
                 valueColor: QuizColors.purple,
               ),
               _StatColumn(
-                value: '8',
+                value: '${_stats.right}',
                 label: AppStrings.t('right_stat'),
                 valueColor: const Color(0xFF10BA65),
               ),
               _StatColumn(
-                value: '2',
+                value: '${_stats.wrong}',
                 label: AppStrings.t('wrong_stat'),
                 valueColor: const Color(0xFFFF0000),
               ),
               _StatColumn(
-                value: '35',
+                value: '${_stats.thisMonth}',
                 label: AppStrings.t('this_month_stat'),
                 valueColor: QuizColors.purple,
               ),

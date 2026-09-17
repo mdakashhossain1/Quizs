@@ -1,46 +1,76 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quizs/services/quiz_repository.dart';
-
+import 'package:quizs/models/question_model.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  group('Remote Quiz and Question Models', () {
+    test('QuizCategory parses from backend API response', () {
+      final json = {
+        'id': 1,
+        'name': 'Science & Nature',
+        'slug': 'science-nature',
+        'description': 'Questions about physics, chemistry, biology',
+        'icon': 'science',
+        'color': '#4F46E5',
+        'quizzes_count': 3,
+        'image_url': 'https://example.com/uploads/categories/science.jpg',
+      };
 
-  setUpAll(() async {
-    await QuizRepository.instance.initialize();
-  });
-
-  group('QuizRepository CSV loading and topic data', () {
-    test('loads GK topics and questions authentically from CSV', () {
-      final gkTopics = QuizRepository.instance.getTopicsForCategory(categoryKey: 'gk');
-      expect(gkTopics.isNotEmpty, isTrue);
-
-      // Verify authentic subtopic names exist
-      final topicNames = gkTopics.map((t) => t.cleanName).toList();
-      expect(topicNames, contains('Ancient & Medieval History'));
-      expect(topicNames, contains('Modern Indian History & Freedom Struggle'));
-      expect(topicNames, contains('World History & Revolutions'));
-      expect(topicNames, contains('Indian Geography (Rivers, Mountains, Climate)'));
-
-      // Check first topic details
-      final ancientTopic = gkTopics.firstWhere((t) => t.cleanName == 'Ancient & Medieval History');
-      expect(ancientTopic.questionCount, greaterThan(10));
-      expect(ancientTopic.questions.length, equals(ancientTopic.questionCount));
-
-      final firstQ = ancientTopic.questions.first;
-      expect(firstQ.question.isNotEmpty, isTrue);
-      expect(firstQ.options.length, equals(4));
-      expect(firstQ.correctOption.isNotEmpty, isTrue);
-      expect(firstQ.explanation.isNotEmpty, isTrue);
+      final category = QuizCategory.fromJson(json);
+      expect(category.id, equals(1));
+      expect(category.name, equals('Science & Nature'));
+      expect(category.slug, equals('science-nature'));
+      expect(category.quizzesCount, equals(3));
+      expect(category.color, equals('#4F46E5'));
+      expect(category.imageUrl, equals('https://example.com/uploads/categories/science.jpg'));
     });
 
-    test('loads Math and Science topics from CSV', () {
-      final mathTopics = QuizRepository.instance.getTopicsForCategory(categoryKey: 'math');
-      expect(mathTopics.isNotEmpty, isTrue);
-      expect(mathTopics.length, greaterThan(5));
+    test('QuizCategory has a null imageUrl when the backend has none set (dynamic_quiz_category_images_brd §7)', () {
+      final category = QuizCategory.fromJson({
+        'id': 2, 'name': 'GK', 'slug': 'gk', 'color': '#000', 'quizzes_count': 0,
+      });
 
-      final scienceTopics = QuizRepository.instance.getTopicsForCategory(categoryKey: 'science');
-      expect(scienceTopics.isNotEmpty, isTrue);
-      expect(scienceTopics.length, greaterThan(5));
+      expect(category.imageUrl, isNull);
+    });
+
+    test('QuizTopic holds remote quiz properties', () {
+      const topic = QuizTopic(
+        name: 'Solar System & Planets',
+        category: 'Science',
+        questionCount: 15,
+        playedCount: 142,
+        progress: 0.5,
+        remoteQuizId: 10,
+        categorySlug: 'science',
+      );
+      expect(topic.remoteQuizId, equals(10));
+      expect(topic.cleanName, equals('Solar System & Planets'));
+      expect(topic.category, equals('Science'));
+      expect(topic.questionCount, equals(15));
+      expect(topic.playedCount, equals(142));
+    });
+
+    test('Question parses correctly from backend remote JSON', () {
+      final json = {
+        'id': 101,
+        'question': 'What is the capital of France?',
+        'option_a': 'London',
+        'option_b': 'Paris',
+        'option_c': 'Berlin',
+        'option_d': 'Madrid',
+        'correct_option': 'B',
+        'explanation': 'Paris is the capital of France.',
+      };
+
+      final question = Question.fromRemoteJson(json);
+      expect(question.id, equals('101'));
+      expect(question.question, equals('What is the capital of France?'));
+      expect(question.optionA, equals('London'));
+      expect(question.optionB, equals('Paris'));
+      expect(question.options, equals(['London', 'Paris', 'Berlin', 'Madrid']));
+      expect(question.correctOptionIndex, equals(1));
+      expect(question.correctOption, equals('B'));
+      expect(question.correctAnswer, equals('Paris'));
+      expect(question.explanation, equals('Paris is the capital of France.'));
     });
   });
 }

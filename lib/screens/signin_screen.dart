@@ -55,7 +55,9 @@ class _SignInScreenState extends State<SignInScreen> {
     try {
       await AuthService.instance.login(email: email, password: password);
       if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed('/');
+      Navigator.of(context).pushReplacementNamed(
+        AuthService.instance.mustChangePassword ? '/force-change-password' : '/',
+      );
     } on AuthVerificationRequiredException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
