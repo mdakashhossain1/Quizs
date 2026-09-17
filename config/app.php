@@ -56,6 +56,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Asset URL
+    |--------------------------------------------------------------------------
+    |
+    | Separate from APP_URL because on this host the domain's document root
+    | is one level above Laravel's public/ folder (an index.php shim routes
+    | everything through Laravel, so routes resolve fine at the bare domain,
+    | but files that physically live in public/ — like the logo — are only
+    | reachable one segment deeper). Leave unset locally, where the dev
+    | server's document root already IS public/.
+    |
+    */
+
+    'asset_url' => env('ASSET_URL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
