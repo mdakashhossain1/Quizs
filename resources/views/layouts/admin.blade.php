@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Dashboard') — Quizs Admin</title>
+    <link rel="icon" type="image/png" href="{{ asset('logo_icon.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,11 +19,52 @@
     </script>
     <style>
         * { font-family: 'Inter', sans-serif; }
-        .nav-link { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #9ca3af; text-decoration: none; transition: background 0.15s, color 0.15s; }
-        .nav-link:hover { background: #374151; color: #fff; }
+
+        /* ── Nav styles ── */
+        .nav-link { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #9ca3af; text-decoration: none; transition: background 0.15s, color 0.15s, transform 0.1s; }
+        .nav-link:hover { background: #374151; color: #fff; transform: translateX(2px); }
         .nav-link.active { background: #2563eb; color: #fff; }
         .nav-link svg { width: 18px; height: 18px; flex-shrink: 0; }
         .nav-section { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; padding: 16px 12px 6px; }
+
+        /* ── Shimmer / Skeleton ── */
+        @keyframes shimmer {
+            0%   { background-position: -600px 0; }
+            100% { background-position:  600px 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+            background-size: 600px 100%;
+            animation: shimmer 1.4s infinite linear;
+            border-radius: 6px;
+        }
+
+        /* ── Pulse (for stat cards while loading) ── */
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.45; } }
+        .animate-pulse { animation: pulse 1.8s ease-in-out infinite; }
+
+        /* ── Page entrance fade-in-up ── */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0);    }
+        }
+        .animate-fade-in  { animation: fadeInUp 0.35s ease-out both; }
+        .animate-fade-in-1 { animation: fadeInUp 0.35s 0.05s ease-out both; }
+        .animate-fade-in-2 { animation: fadeInUp 0.35s 0.10s ease-out both; }
+        .animate-fade-in-3 { animation: fadeInUp 0.35s 0.15s ease-out both; }
+        .animate-fade-in-4 { animation: fadeInUp 0.35s 0.20s ease-out both; }
+
+        /* ── Button micro-interaction ── */
+        button, a.btn { transition: transform 0.1s, box-shadow 0.1s; }
+        button:active, a.btn:active { transform: scale(0.97); }
+
+        /* ── Table row hover ── */
+        tbody tr { transition: background 0.12s; }
+        tbody tr:hover { background: #f5f3ff !important; }
+
+        /* ── Card hover lift ── */
+        .card-hover { transition: box-shadow 0.2s, transform 0.2s; }
+        .card-hover:hover { box-shadow: 0 8px 24px rgba(105,0,197,0.12); transform: translateY(-2px); }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -33,12 +75,9 @@
     <aside class="w-60 bg-gray-900 flex flex-col flex-shrink-0">
 
         {{-- Brand --}}
-        <div class="flex items-center gap-3 px-4 py-4 border-b border-gray-700">
-            <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-sm flex-shrink-0">Q</div>
-            <div>
-                <p class="text-white font-semibold text-sm leading-tight">Quizs Admin</p>
-                <p class="text-gray-400 text-xs">Management Panel</p>
-            </div>
+        <div class="flex flex-col items-center px-4 py-4 border-b border-gray-700">
+            <img src="{{ asset('logo_icon.png') }}" alt="Quizs Logo" class="h-10 w-10 object-cover rounded-xl">
+            <p class="text-gray-400 text-xs mt-1">Management Panel</p>
         </div>
 
         {{-- Navigation --}}
