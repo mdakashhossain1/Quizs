@@ -20,9 +20,30 @@ class FcmService
 {
     public static function isConfigured(): bool
     {
-        $path = config('services.fcm.credentials_path');
+        return filled(config('services.fcm.project_id')) && self::credentials() !== null;
+    }
 
-        return filled(config('services.fcm.project_id')) && filled($path) && is_string($path) && file_exists($path);
+    /**
+     * The service-account JSON, decoded. Prefers FCM_CREDENTIALS_JSON (the
+     * whole file inline in .env — shared hosting can't rely on a private
+     * storage path surviving a deploy) and falls back to reading
+     * FCM_CREDENTIALS_PATH from disk when the inline value isn't set.
+     */
+    private static function credentials(): ?array
+    {
+        $json = config('services.fcm.credentials_json');
+        if (filled($json)) {
+            $decoded = json_decode($json, true);
+            return is_array($decoded) ? $decoded : null;
+        }
+
+        $path = config('services.fcm.credentials_path');
+        if (filled($path) && is_string($path) && file_exists($path)) {
+            $decoded = json_decode(file_get_contents($path), true);
+            return is_array($decoded) ? $decoded : null;
+        }
+
+        return null;
     }
 
     /**
@@ -93,7 +114,40 @@ class FcmService
     private static function accessToken(): string
     {
         return Cache::remember('fcm_access_token', 3000, function () {
-            $credentials = json_decode(file_get_contents(config('services.fcm.credentials_path')), true);
+            $credentials = self::credentials() ?? throw new \RuntimeException('FCM credentials are not configured.');
+            $result = self::requestAccessToken($credentials);
+
+            return $result['token'] ?? throw new \RuntimeException(
+                'Failed to obtain an FCM access token: '.$result['error']
+            );
+        });
+    }
+
+    /**
+     * Exchanges an arbitrary (not necessarily the currently-configured)
+     * service-account array for an access token, uncached — used by the
+     * admin settings panel to verify a pasted Firebase JSON actually works
+     * with Google before it's saved to .env.
+     */
+    public static function verifyCredentials(array $credentials): array
+    {
+        if (empty($credentials['client_email']) || empty($credentials['private_key'])) {
+            return ['ok' => false, 'error' => 'Missing client_email or private_key.'];
+        }
+
+        $result = self::requestAccessToken($credentials);
+
+        return $result['token']
+            ? ['ok' => true, 'error' => null]
+            : ['ok' => false, 'error' => $result['error']];
+    }
+
+    /**
+     * @return array{token: ?string, error: ?string}
+     */
+    private static function requestAccessToken(array $credentials): array
+    {
+        try {
             $now = time();
 
             $jwt = self::signedJwt([
@@ -109,10 +163,14 @@ class FcmService
                 'assertion' => $jwt,
             ]);
 
-            return $response->json('access_token') ?? throw new \RuntimeException(
-                'Failed to obtain an FCM access token: ' . $response->body()
-            );
-        });
+            $token = $response->json('access_token');
+
+            return $token
+                ? ['token' => $token, 'error' => null]
+                : ['token' => null, 'error' => $response->json('error_description') ?? $response->body()];
+        } catch (\Throwable $e) {
+            return ['token' => null, 'error' => $e->getMessage()];
+        }
     }
 
     private static function signedJwt(array $claims, string $privateKey): string

@@ -53,8 +53,13 @@ return [
         // e.g. attendance updates. Until both are set, FcmService logs the
         // notification instead of sending it — see FcmService::isConfigured.
         'project_id' => env('FCM_PROJECT_ID'),
-        // Absolute path to the downloaded service-account JSON credentials
-        // (Firebase Console -> Project Settings -> Service Accounts).
+        // The downloaded service-account JSON (Firebase Console -> Project
+        // Settings -> Service Accounts), as a single-line string directly in
+        // .env — preferred on shared hosting, where a private storage path
+        // isn't something you can rely on surviving a deploy.
+        'credentials_json' => env('FCM_CREDENTIALS_JSON'),
+        // Fallback: absolute path to that same JSON file on disk, for setups
+        // that do have a reliable private storage location.
         'credentials_path' => env('FCM_CREDENTIALS_PATH'),
     ],
 
