@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Mail\OtpMail;
+use App\Mail\WelcomeMail;
 use App\Models\User;
 use App\Models\UserSession;
 use Illuminate\Http\JsonResponse;
@@ -185,6 +186,8 @@ class AuthController extends Controller
             'otp_expires_at' => null,
         ])->save();
 
+        Mail::to($user->email)->queue(new WelcomeMail($user));
+
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
@@ -275,7 +278,7 @@ class AuthController extends Controller
             'otp_expires_at' => now()->addMinutes(self::OTP_TTL_MINUTES),
         ])->save();
 
-        Mail::to($user->email)->send(new OtpMail($code, self::OTP_TTL_MINUTES));
+        Mail::to($user->email)->queue(new OtpMail($code, self::OTP_TTL_MINUTES));
     }
 
     /**

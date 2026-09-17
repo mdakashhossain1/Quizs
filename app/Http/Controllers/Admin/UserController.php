@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\NewAccountMail;
+use App\Mail\TargetAssignedMail;
 use App\Models\User;
 use App\Services\ProfileStatsService;
 use App\Services\TargetService;
@@ -86,28 +87,29 @@ class UserController extends Controller
             'is_active' => true,
         ]);
 
-        $emailSent = $this->sendAccountMail($user, $temporaryPassword);
+        $emailQueued = $this->sendAccountMail($user, $temporaryPassword);
 
         return redirect()->route('admin.users.index')->with(
             'success',
-            $emailSent
-                ? "User created. Temporary password: {$temporaryPassword} (also emailed to {$user->email})."
-                : "User created. Temporary password: {$temporaryPassword} (email delivery failed — share this password with the user directly)."
+            $emailQueued
+                ? "User created. Temporary password: {$temporaryPassword} (email queued for {$user->email})."
+                : "User created. Temporary password: {$temporaryPassword} (email could not be queued — share this password with the user directly)."
         );
     }
 
     /**
-     * Never lets an SMTP failure crash the request: the temporary password
-     * is only ever known to the admin at this moment, so a 500 here would
-     * leave the account created with a password nobody can recover.
+     * Never lets a queue-push failure crash the request: the temporary
+     * password is only ever known to the admin at this moment, so a 500
+     * here would leave the account created with a password nobody can
+     * recover.
      */
     private function sendAccountMail(User $user, string $temporaryPassword, bool $isReset = false): bool
     {
         try {
-            Mail::to($user->email)->send(new NewAccountMail($user, $temporaryPassword, isReset: $isReset));
+            Mail::to($user->email)->queue(new NewAccountMail($user, $temporaryPassword, isReset: $isReset));
             return true;
         } catch (Throwable $e) {
-            Log::warning('Account credential email failed to send', [
+            Log::warning('Account credential email failed to queue', [
                 'user_id' => $user->id,
                 'is_reset' => $isReset,
                 'error' => $e->getMessage(),
@@ -163,13 +165,13 @@ class UserController extends Controller
 
         $user->tokens()->delete();
 
-        $emailSent = $this->sendAccountMail($user, $temporaryPassword, isReset: true);
+        $emailQueued = $this->sendAccountMail($user, $temporaryPassword, isReset: true);
 
         return redirect()->route('admin.users.index')->with(
             'success',
-            $emailSent
-                ? "Password reset for {$user->name}. Temporary password: {$temporaryPassword} (also emailed)."
-                : "Password reset for {$user->name}. Temporary password: {$temporaryPassword} (email delivery failed — share this password with the user directly)."
+            $emailQueued
+                ? "Password reset for {$user->name}. Temporary password: {$temporaryPassword} (email queued)."
+                : "Password reset for {$user->name}. Temporary password: {$temporaryPassword} (email could not be queued — share this password with the user directly)."
         );
     }
 
@@ -206,7 +208,15 @@ class UserController extends Controller
             $updateData['must_change_password'] = false;
         }
 
+        $previousTarget = $user->custom_daily_target;
+
         $user->update($updateData);
+
+        // Only notify on an actual new/changed override, not when it's
+        // unset back to the global target or left untouched.
+        if ($user->custom_daily_target !== null && $user->custom_daily_target !== $previousTarget) {
+            Mail::to($user->email)->queue(new TargetAssignedMail($user, $user->custom_daily_target));
+        }
 
         return redirect()->route('admin.users.index')->with('success', 'User profile updated.');
     }

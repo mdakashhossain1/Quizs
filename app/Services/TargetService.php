@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Mail\TargetCompletedMail;
 use App\Models\AppSetting;
 use App\Models\User;
 use App\Models\UserDailyProgress;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Daily quiz target resolution and progress tracking (roadmap §6).
@@ -102,6 +104,7 @@ class TargetService
                     // reaches its target — never on later completions the
                     // same day, and never retroactively for past days.
                     ProgressionService::awardDailyTargetXp($user);
+                    Mail::to($user->email)->queue(new TargetCompletedMail($user, $progress));
                 }
             } else {
                 $progress->target_status = 'in_progress';

@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -9,26 +10,30 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class OtpMail extends Mailable implements ShouldQueue
+/**
+ * Sent when an admin sets or changes a user's custom daily quiz target
+ * (App\Http\Controllers\Admin\UserController::update — roadmap §6.2).
+ */
+class TargetAssignedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     public function __construct(
-        public readonly string $code,
-        public readonly int $ttlMinutes,
+        public readonly User $user,
+        public readonly int $target,
     ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Quizs verification code',
+            subject: 'Your daily quiz target has been updated',
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.otp',
+            view: 'emails.target_assigned',
         );
     }
 }
