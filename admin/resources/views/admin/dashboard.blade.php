@@ -6,7 +6,7 @@
 @section('content')
 
 {{-- Stats Row --}}
-<div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
 
     {{-- Total Users --}}
     <div class="bg-white border border-gray-200 rounded-lg p-4">
@@ -83,7 +83,7 @@
 </div>
 
 {{-- Quick Actions --}}
-<div class="flex items-center gap-3 mb-6">
+<div class="flex flex-wrap items-center gap-3 mb-6">
     <a href="{{ route('admin.quizzes.create') }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         New Quiz

@@ -7,7 +7,7 @@
 
 @section('content')
 
-<div class="flex items-center justify-between mb-5">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
     <div>
         <h2 class="text-lg font-bold text-gray-900">Push Notifications</h2>
         <p class="text-xs text-gray-400 mt-0.5">Server-driven notifications sent to the app</p>

@@ -6,7 +6,7 @@
 @section('content')
 
 <div class="max-w-2xl">
-    <div class="flex items-center justify-between mb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <h2 class="text-lg font-bold text-gray-900">Create Category</h2>
         <a href="{{ route('admin.categories.index') }}" class="text-sm text-gray-500 hover:text-gray-800">&larr; Back to categories</a>
     </div>
@@ -36,7 +36,7 @@
                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono">
             </div>
 
-            <div class="grid grid-cols-2 gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                     <label for="color" class="block text-sm font-medium text-gray-700 mb-1">Accent Color</label>
                     <div class="flex items-center gap-2">

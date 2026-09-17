@@ -6,7 +6,7 @@
 @section('content')
 
 <div class="max-w-2xl">
-    <div class="flex items-center justify-between mb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <h2 class="text-lg font-bold text-gray-900">New Push Notification</h2>
         <a href="{{ route('admin.push-notifications.index') }}" class="text-sm text-gray-500 hover:text-gray-800">&larr; Back to notifications</a>
     </div>
@@ -61,7 +61,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                     <label for="destination_type" class="block text-sm font-medium text-gray-700 mb-1">Destination <span class="text-red-500">*</span></label>
                     <select id="destination_type" name="destination_type" required

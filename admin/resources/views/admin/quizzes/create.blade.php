@@ -6,7 +6,7 @@
 @section('content')
 
 <div class="max-w-3xl">
-    <div class="flex items-center justify-between mb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <h2 class="text-lg font-bold text-gray-900">Create Quiz</h2>
         <a href="{{ route('admin.quizzes.index') }}" class="text-sm text-gray-500 hover:text-gray-800">&larr; Back to quizzes</a>
     </div>
@@ -15,7 +15,7 @@
         <form action="{{ route('admin.quizzes.store') }}" method="POST" class="space-y-5">
             @csrf
 
-            <div class="grid grid-cols-2 gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                     <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
                     <select id="category_id" name="category_id" required
@@ -52,7 +52,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Language <span class="text-red-500">*</span></label>
                 <p class="text-xs text-gray-400 mb-2">Cannot be changed after the quiz is created.</p>
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <label class="flex items-center gap-2 border border-gray-200 rounded px-3 py-2 cursor-pointer has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
                         <input type="radio" name="language" value="en" {{ old('language', 'en') === 'en' ? 'checked' : '' }} required>
                         <span class="text-sm">English only</span>
@@ -68,7 +68,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 <div>
                     <label for="duration_minutes" class="block text-sm font-medium text-gray-700 mb-1">Duration (mins) <span class="text-red-500">*</span></label>
                     <input type="number" id="duration_minutes" name="duration_minutes" value="{{ old('duration_minutes', 10) }}" min="1" required
