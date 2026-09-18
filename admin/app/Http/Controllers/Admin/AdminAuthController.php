@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AdminAuthController extends Controller
@@ -31,6 +33,10 @@ class AdminAuthController extends Controller
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
+
+        if (config('services.turnstile.enabled')) {
+            $this->verifyTurnstile($request);
+        }
 
         $remember = $request->boolean('remember');
 
@@ -72,5 +78,33 @@ class AdminAuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('admin.login')->with('success', 'You have been logged out.');
+    }
+
+    /**
+     * Verifies the Cloudflare Turnstile widget response server-side; throws
+     * a validation error (rendered next to the widget) when it's missing or
+     * rejected, so a bot can't skip the challenge by dropping the token.
+     */
+    private function verifyTurnstile(Request $request): void
+    {
+        $token = $request->string('cf-turnstile-response')->toString();
+
+        if ($token === '') {
+            throw ValidationException::withMessages([
+                'cf-turnstile-response' => 'Please complete the captcha challenge.',
+            ]);
+        }
+
+        $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+            'secret' => config('services.turnstile.secret_key'),
+            'response' => $token,
+            'remoteip' => $request->ip(),
+        ]);
+
+        if (! $response->json('success', false)) {
+            throw ValidationException::withMessages([
+                'cf-turnstile-response' => 'Captcha verification failed. Please try again.',
+            ]);
+        }
     }
 }

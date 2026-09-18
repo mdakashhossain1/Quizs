@@ -42,6 +42,16 @@ return [
         'api_key' => env('FIREBASE_API_KEY'),
     ],
 
+    'turnstile' => [
+        // Cloudflare Turnstile captcha on the admin login form. Defaults are
+        // Cloudflare's public test keys (always pass, work on any domain
+        // including localhost) — replace both before going to production:
+        // https://dash.cloudflare.com/?to=/:account/turnstile
+        'site_key' => env('TURNSTILE_SITE_KEY', '1x00000000000000000000AA'),
+        'secret_key' => env('TURNSTILE_SECRET_KEY', '1x0000000000000000000000000000000AA'),
+        'enabled' => env('TURNSTILE_ENABLED', true),
+    ],
+
     'cron' => [
         // Shared secret for the cron-job.org webhook (App\Http\Controllers\CronController).
         // Generate one with `php artisan tinker --execute="echo Str::random(40);"`.
