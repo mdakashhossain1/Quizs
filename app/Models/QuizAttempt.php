@@ -53,4 +53,18 @@ class QuizAttempt extends Model
     {
         return $this->hasMany(QuizAttemptAnswer::class);
     }
+
+    /**
+     * True for an attempt that's still `in_progress` long after a normal
+     * quiz would have finished — almost always a killed/crashed app that
+     * never reached submitAttempt, not a user genuinely still answering.
+     * Display-only: doesn't touch `status`, so filtering by status=in_progress
+     * still finds it.
+     */
+    public function isStale(): bool
+    {
+        return $this->status === 'in_progress'
+            && $this->started_at !== null
+            && $this->started_at->diffInHours(now()) >= 2;
+    }
 }

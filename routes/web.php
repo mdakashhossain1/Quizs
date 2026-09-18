@@ -44,6 +44,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::resource('quizzes', QuizController::class);
     Route::resource('questions', QuestionController::class);
     Route::resource('quiz-attempts', QuizAttemptController::class)->only(['index', 'show', 'destroy']);
+    Route::get('quiz-attempts/{quizAttempt}/summary/pdf', [QuizAttemptController::class, 'summaryPdf'])->name('quiz-attempts.summary.pdf');
+    Route::get('quiz-attempts/{quizAttempt}/summary/csv', [QuizAttemptController::class, 'summaryCsv'])->name('quiz-attempts.summary.csv');
     Route::resource('users', UserController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     Route::get('users/{user}/activity', [UserController::class, 'activity'])->name('users.activity');

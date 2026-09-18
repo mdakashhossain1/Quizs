@@ -88,6 +88,8 @@
                         <td class="px-4 py-3">
                             @if($attempt->status === 'completed')
                                 <span class="text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">Completed</span>
+                            @elseif($attempt->isStale())
+                                <span class="text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded">Abandoned</span>
                             @else
                                 <span class="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">In Progress</span>
                             @endif
