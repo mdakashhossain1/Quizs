@@ -127,7 +127,7 @@
                             <td class="px-4 py-3 font-medium text-gray-900">{{ $att->user->name ?? 'Guest' }}</td>
                             <td class="px-4 py-3 text-gray-600">{{ $att->quiz->title ?? 'Quiz' }}</td>
                             <td class="px-4 py-3">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700">+{{ $att->score }} pts</span>
+                                <span class="inline-flex items-center whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700">+{{ $att->score }} pts</span>
                             </td>
                             <td class="px-4 py-3 text-gray-500 text-xs">{{ $att->correct_answers }} / {{ $att->total_questions }}</td>
                             <td class="px-4 py-3 text-gray-400 text-xs">{{ $att->completed_at ? $att->completed_at->diffForHumans() : '-' }}</td>

@@ -85,7 +85,7 @@
                                     'not_started' => 'Not Started',
                                 ];
                             @endphp
-                            <span class="text-xs font-medium px-2 py-0.5 rounded {{ $statusStyles[$p->display_status] }}">
+                            <span class="whitespace-nowrap text-xs font-medium px-2 py-0.5 rounded {{ $statusStyles[$p->display_status] }}">
                                 {{ $statusLabels[$p->display_status] }}
                             </span>
                         </td>

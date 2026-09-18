@@ -67,7 +67,7 @@
                     @endphp
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
-                            <span class="text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">
+                            <span class="whitespace-nowrap text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">
                                 {{ $question->quiz->title ?? 'Unassigned' }}
                             </span>
                         </td>
@@ -94,11 +94,11 @@
                         <td class="px-4 py-3">
                             @if($bilingual)
                                 <div class="flex items-center gap-1">
-                                    <span class="text-xs px-1.5 py-0.5 rounded {{ $hasEn ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600' }}">EN {{ $hasEn ? '✓' : 'Missing' }}</span>
-                                    <span class="text-xs px-1.5 py-0.5 rounded {{ $hasHi ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600' }}">HI {{ $hasHi ? '✓' : 'Missing' }}</span>
+                                    <span class="whitespace-nowrap text-xs px-1.5 py-0.5 rounded {{ $hasEn ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600' }}">EN {{ $hasEn ? '✓' : 'Missing' }}</span>
+                                    <span class="whitespace-nowrap text-xs px-1.5 py-0.5 rounded {{ $hasHi ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600' }}">HI {{ $hasHi ? '✓' : 'Missing' }}</span>
                                 </div>
                             @else
-                                <span class="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 uppercase">{{ $question->quiz->language ?? '—' }}</span>
+                                <span class="whitespace-nowrap text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 uppercase">{{ $question->quiz->language ?? '—' }}</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-gray-700 font-medium text-xs">+{{ $question->points }}</td>
