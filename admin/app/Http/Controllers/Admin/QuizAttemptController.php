@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Dompdf\Dompdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -95,7 +96,9 @@ class QuizAttemptController extends Controller
     {
         $quizAttempt->load(['user', 'quiz']);
 
-        $pdf = Pdf::loadView('admin.quiz-attempts.summary-pdf', compact('quizAttempt'));
+        $pdf = Pdf::loadView('admin.quiz-attempts.summary-pdf', compact('quizAttempt'))
+            ->setOption('enable_font_subsetting', true);
+        $this->registerDevanagariFont($pdf->getDomPDF());
 
         return $pdf->download("quiz-attempt-{$quizAttempt->id}-summary.pdf");
     }
@@ -149,7 +152,9 @@ class QuizAttemptController extends Controller
         $attempts = $this->filteredQuery($request)->get();
 
         $pdf = Pdf::loadView('admin.quiz-attempts.summary-list-pdf', compact('attempts'))
-            ->setPaper('a4', 'landscape');
+            ->setPaper('a4', 'landscape')
+            ->setOption('enable_font_subsetting', true);
+        $this->registerDevanagariFont($pdf->getDomPDF());
 
         return $pdf->download('quiz-attempts-summary.pdf');
     }
@@ -187,5 +192,21 @@ class QuizAttemptController extends Controller
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename=quiz-attempts-summary.csv',
         ]);
+    }
+
+    /**
+     * Embeds Noto Sans Devanagari so Hindi quiz titles/user names actually
+     * render in the PDF exports — dompdf's built-in fonts (Helvetica/DejaVu)
+     * have no Devanagari glyphs, so without this Hindi text silently renders
+     * as blank/missing boxes. Registering here (rather than via @font-face
+     * in the Blade view) sidesteps dompdf's local-file @font-face loading
+     * being unreliable; this is the documented, reliable path.
+     */
+    private function registerDevanagariFont(Dompdf $dompdf): void
+    {
+        $dompdf->getFontMetrics()->registerFont(
+            ['family' => 'NotoDevanagari', 'style' => 'normal', 'weight' => 'normal'],
+            resource_path('fonts/NotoSansDevanagari-Regular.ttf'),
+        );
     }
 }

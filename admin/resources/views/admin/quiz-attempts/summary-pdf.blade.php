@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <title>Result Summary</title>
     <style>
-        body { font-family: sans-serif; font-size: 12px; color: #1f2937; }
+        /* Registered in PHP via FontMetrics::registerFont — see
+           QuizAttemptController::registerDevanagariFont. Noto Sans
+           Devanagari also covers basic Latin, so one font handles both
+           English labels and Hindi quiz titles/names. */
+        body { font-family: 'NotoDevanagari', sans-serif; font-size: 12px; color: #1f2937; }
         h1 { font-size: 18px; margin-bottom: 4px; }
         .subtitle { color: #6b7280; margin-bottom: 24px; }
         table { width: 100%; border-collapse: collapse; }

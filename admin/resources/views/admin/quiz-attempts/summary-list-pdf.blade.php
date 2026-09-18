@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <title>Quiz Attempts Summary</title>
     <style>
-        body { font-family: sans-serif; font-size: 10px; color: #1f2937; }
+        /* Registered in PHP via FontMetrics::registerFont — see
+           QuizAttemptController::registerDevanagariFont. */
+        body { font-family: 'NotoDevanagari', sans-serif; font-size: 10px; color: #1f2937; }
         h1 { font-size: 16px; margin-bottom: 4px; }
         .subtitle { color: #6b7280; margin-bottom: 16px; }
         table { width: 100%; border-collapse: collapse; }
