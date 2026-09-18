@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\PushNotificationController;
 use App\Http\Controllers\Admin\QuizController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\TargetController;
+use App\Http\Controllers\Admin\TurnstileSettingsController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -59,6 +60,9 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
 
         Route::get('/firebase', [FirebaseSettingsController::class, 'edit'])->name('firebase');
         Route::put('/firebase', [FirebaseSettingsController::class, 'update'])->name('firebase.update');
+
+        Route::get('/turnstile', [TurnstileSettingsController::class, 'edit'])->name('turnstile');
+        Route::put('/turnstile', [TurnstileSettingsController::class, 'update'])->name('turnstile.update');
 
         Route::get('/migrations', [DatabaseMigrationController::class, 'index'])->name('migrations');
         Route::post('/migrations/run', [DatabaseMigrationController::class, 'run'])->name('migrations.run');

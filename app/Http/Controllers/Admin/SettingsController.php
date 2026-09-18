@@ -16,6 +16,7 @@ class SettingsController extends Controller
         return view('admin.settings.index', [
             'emailConfigured' => config('mail.default') === 'smtp' && filled(config('mail.mailers.smtp.host')),
             'firebaseConfigured' => FcmService::isConfigured(),
+            'turnstileEnabled' => (bool) config('services.turnstile.enabled'),
         ]);
     }
 
