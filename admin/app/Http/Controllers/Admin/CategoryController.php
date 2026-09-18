@@ -12,12 +12,16 @@ use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $categories = Category::withCount('quizzes')
             ->orderBy('sort_order')
             ->latest()
             ->paginate(15);
+
+        if ($request->ajax()) {
+            return view('admin.categories._table', compact('categories'));
+        }
 
         return view('admin.categories.index', compact('categories'));
     }
