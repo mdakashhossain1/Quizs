@@ -38,15 +38,15 @@ class TestAds with WidgetsBindingObserver {
 
   static String get bannerId => defaultTargetPlatform == TargetPlatform.iOS
       ? 'ca-app-pub-3940256099942544/2934735716'
-      : 'ca-app-pub-3940256099942544/6300978111';
+      : 'ca-app-pub-2673210126301403/7735647022';
 
   static String get appOpenId => defaultTargetPlatform == TargetPlatform.iOS
       ? 'ca-app-pub-3940256099942544/5575463023'
-      : 'ca-app-pub-3940256099942544/9257395921';
+      : 'ca-app-pub-2673210126301403/9436188616';
 
   static String get interstitialId => defaultTargetPlatform == TargetPlatform.iOS
       ? 'ca-app-pub-3940256099942544/4411468910'
-      : 'ca-app-pub-3940256099942544/1033173712';
+      : 'ca-app-pub-2673210126301403/4790366599';
 
   /// Initializes AdMob and prepares App Open Ads and Interstitial Ads.
   static void start() {

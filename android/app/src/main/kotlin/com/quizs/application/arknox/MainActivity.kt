@@ -1,4 +1,4 @@
-package com.quizs.arknox
+package com.quizs.application.arknox
 
 import io.flutter.embedding.android.FlutterActivity
 

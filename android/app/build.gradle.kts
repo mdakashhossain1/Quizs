@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.quizs.arknox"
+    namespace = "com.quizs.application.arknox"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.quizs.arknox"
+        applicationId = "com.quizs.application.arknox"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
