@@ -15,6 +15,10 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Quizs uses the camera to let you take a new profile picture.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Quizs uses your photo library to let you pick a profile picture.</string>
 	<key>CFBundleDisplayName</key>
 	<string>Quizs</string>
 	<key>CFBundleExecutable</key>

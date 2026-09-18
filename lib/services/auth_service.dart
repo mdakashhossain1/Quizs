@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -51,7 +52,7 @@ class AuthService extends ChangeNotifier {
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     serverClientId:
-        '317616672617-3soecg4cp1q1i1vs7al9ifqfqs5r2dfs.apps.googleusercontent.com',
+        '283030564600-h9h55p4n1dudj3bno7pn67p4eoqnc0g8.apps.googleusercontent.com',
   );
 
   /// `App Open -> Read Secure Token -> Validate Token -> Valid -> Open App`;
@@ -382,6 +383,35 @@ class AuthService extends ChangeNotifier {
     try {
       _prefs ??= await SharedPreferences.getInstance();
       await _prefs?.setString(_keyUserName, _userName!);
+      if (_userPhoto != null) {
+        await _prefs?.setString(_keyUserPhoto, _userPhoto!);
+      }
+    } catch (_) {}
+    notifyListeners();
+  }
+
+  /// Uploads a picked image file as the account's new profile picture.
+  /// Throws [ApiException] on failure (e.g. file too large, not an image).
+  Future<void> uploadAvatar(File file) async {
+    final data = await ApiClient.instance.postMultipart(
+      '/auth/avatar',
+      fileField: 'avatar',
+      file: file,
+    );
+
+    final user = data['user'] as Map<String, dynamic>?;
+    _userPhoto = user?['avatar'] as String? ?? _userPhoto;
+
+    try {
+      if (Firebase.apps.isNotEmpty) {
+        final currentFirebaseUser = FirebaseAuth.instance.currentUser;
+        if (currentFirebaseUser != null && _userPhoto != null) {
+          await currentFirebaseUser.updatePhotoURL(_userPhoto);
+        }
+      }
+    } catch (_) {}
+    try {
+      _prefs ??= await SharedPreferences.getInstance();
       if (_userPhoto != null) {
         await _prefs?.setString(_keyUserPhoto, _userPhoto!);
       }

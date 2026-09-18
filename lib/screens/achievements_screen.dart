@@ -106,10 +106,15 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                               alignment: Alignment.center,
                               children: [
                                 DailyProgressRing(progress: _summary.todayProgressPercentage / 100, size: 110),
-                                const CircleAvatar(
+                                CircleAvatar(
                                   radius: 40,
-                                  backgroundColor: Color(0xFFEDE4F7),
-                                  child: Icon(Icons.person, size: 42, color: QuizColors.purple),
+                                  backgroundColor: const Color(0xFFEDE4F7),
+                                  backgroundImage: (AuthService.instance.userPhoto?.isNotEmpty ?? false)
+                                      ? NetworkImage(AuthService.instance.userPhoto!)
+                                      : null,
+                                  child: (AuthService.instance.userPhoto?.isNotEmpty ?? false)
+                                      ? null
+                                      : const Icon(Icons.person, size: 42, color: QuizColors.purple),
                                 ),
                               ],
                             ),

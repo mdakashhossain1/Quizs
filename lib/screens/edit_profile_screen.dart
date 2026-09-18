@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../l10n/app_strings.dart';
 import '../services/api_client.dart';
@@ -20,6 +23,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _confirmPasswordController = TextEditingController();
 
   bool _isSaving = false;
+  bool _isUploadingAvatar = false;
 
   @override
   void initState() {
@@ -104,6 +108,57 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  void _handlePickAvatar() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_rounded, color: QuizColors.purple),
+              title: const Text('Take Photo'),
+              onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded, color: QuizColors.purple),
+              title: const Text('Choose from Gallery'),
+              onTap: () => Navigator.of(sheetContext).pop(ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+
+    final picked = await ImagePicker().pickImage(
+      source: source,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
+    if (picked == null || !mounted) return;
+
+    setState(() => _isUploadingAvatar = true);
+    try {
+      await AuthService.instance.uploadAvatar(File(picked.path));
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: QuizColors.purple,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isUploadingAvatar = false);
     }
   }
 
@@ -211,45 +266,71 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                 // Avatar with Edit Badge
                 Center(
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFFF3EEF8),
-                          border: Border.all(
-                            color: QuizColors.purple.withValues(alpha: 0.2),
-                            width: 2.5,
-                          ),
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.person_rounded,
-                            size: 54,
-                            color: QuizColors.purple,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          width: 30,
-                          height: 30,
-                          decoration: const BoxDecoration(
-                            color: QuizColors.purple,
+                  child: GestureDetector(
+                    onTap: _isUploadingAvatar ? null : _handlePickAvatar,
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 90,
+                          height: 90,
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
+                            color: const Color(0xFFF3EEF8),
+                            border: Border.all(
+                              color: QuizColors.purple.withValues(alpha: 0.2),
+                              width: 2.5,
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.camera_alt_rounded,
-                            size: 16,
-                            color: Colors.white,
+                          child: ClipOval(
+                            child: _isUploadingAvatar
+                                ? const Center(
+                                    child: SizedBox(
+                                      width: 28,
+                                      height: 28,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: QuizColors.purple,
+                                      ),
+                                    ),
+                                  )
+                                : (AuthService.instance.userPhoto?.isNotEmpty ?? false)
+                                    ? Image.network(
+                                        AuthService.instance.userPhoto!,
+                                        width: 90,
+                                        height: 90,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => const Icon(
+                                          Icons.person_rounded,
+                                          size: 54,
+                                          color: QuizColors.purple,
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.person_rounded,
+                                        size: 54,
+                                        color: QuizColors.purple,
+                                      ),
                           ),
                         ),
-                      ),
-                    ],
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: const BoxDecoration(
+                              color: QuizColors.purple,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt_rounded,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),

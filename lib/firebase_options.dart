@@ -44,11 +44,11 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCQs4ewyGia1xG_GA6yoMpwIaKOtX0O9nI',
-    appId: '1:317616672617:android:2db75cd24691057041b7f8',
-    messagingSenderId: '317616672617',
-    projectId: 'quizs-5b40a',
-    storageBucket: 'quizs-5b40a.firebasestorage.app',
+    apiKey: 'AIzaSyCHagT69yAb_4jtGd1Ax0koefDASXY3kbs',
+    appId: '1:283030564600:android:6dabf65a54ff5998ae950d',
+    messagingSenderId: '283030564600',
+    projectId: 'quizs-arknox-app',
+    storageBucket: 'quizs-arknox-app.firebasestorage.app',
   );
 
   static const FirebaseOptions web = FirebaseOptions(
