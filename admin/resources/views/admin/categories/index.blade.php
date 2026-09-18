@@ -48,16 +48,16 @@
                         <td class="px-4 py-3 font-semibold text-gray-900">{{ $cat->name }}</td>
                         <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ $cat->slug }}</td>
                         <td class="px-4 py-3">
-                            <span class="text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">{{ $cat->quizzes_count }}</span>
+                            <span class="whitespace-nowrap text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">{{ $cat->quizzes_count }}</span>
                         </td>
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ $cat->sort_order }}</td>
                         <td class="px-4 py-3">
                             @if($cat->is_active)
-                                <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">
+                                <span class="inline-flex items-center gap-1 whitespace-nowrap text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">
                                     <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Active
                                 </span>
                             @else
-                                <span class="inline-flex items-center gap-1 text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded">Hidden</span>
+                                <span class="inline-flex items-center gap-1 whitespace-nowrap text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded">Hidden</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-right">

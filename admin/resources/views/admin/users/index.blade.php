@@ -70,7 +70,7 @@
                             </div>
                         </td>
                         <td class="px-4 py-3">
-                            <span class="text-xs font-medium px-2 py-0.5 rounded {{ $u->role === 'admin' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-gray-100 text-gray-600' }}">
+                            <span class="whitespace-nowrap text-xs font-medium px-2 py-0.5 rounded {{ $u->role === 'admin' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-gray-100 text-gray-600' }}">
                                 {{ ucfirst($u->role) }}
                             </span>
                         </td>
@@ -80,11 +80,11 @@
                         <td class="px-4 py-3">
                             <a href="{{ route('admin.users.activity', $u) }}" class="block hover:underline">
                                 @if($u->is_online)
-                                    <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+                                    <span class="inline-flex items-center gap-1 whitespace-nowrap text-xs font-medium text-green-700">
                                         <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Online
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center gap-1 text-xs font-medium text-gray-500">
+                                    <span class="inline-flex items-center gap-1 whitespace-nowrap text-xs font-medium text-gray-500">
                                         <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span> Offline
                                     </span>
                                 @endif
@@ -95,14 +95,14 @@
                         </td>
                         <td class="px-4 py-3">
                             @if($u->is_active)
-                                <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">
+                                <span class="inline-flex items-center gap-1 whitespace-nowrap text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">
                                     <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Active
                                 </span>
                             @else
-                                <span class="text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded">Blocked</span>
+                                <span class="whitespace-nowrap text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded">Blocked</span>
                             @endif
                             @if($u->must_change_password)
-                                <span class="block mt-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded w-fit">Temp password</span>
+                                <span class="block mt-1 whitespace-nowrap text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded w-fit">Temp password</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-right">

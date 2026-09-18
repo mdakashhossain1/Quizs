@@ -60,7 +60,7 @@
                             <p class="text-xs text-gray-400 font-mono">{{ $quiz->slug }}</p>
                         </td>
                         <td class="px-4 py-3">
-                            <span class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
+                            <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
                                 <span class="w-2 h-2 rounded-full" style="background-color: {{ $quiz->category->color ?? '#6b7280' }}"></span>
                                 {{ $quiz->category->name ?? 'Uncategorized' }}
                             </span>
@@ -73,21 +73,21 @@
                         </td>
                         <td class="px-4 py-3">
                             @if($quiz->difficulty === 'easy')
-                                <span class="text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">Easy</span>
+                                <span class="whitespace-nowrap text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">Easy</span>
                             @elseif($quiz->difficulty === 'medium')
-                                <span class="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">Medium</span>
+                                <span class="whitespace-nowrap text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">Medium</span>
                             @else
-                                <span class="text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded">Hard</span>
+                                <span class="whitespace-nowrap text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded">Hard</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ $quiz->duration_minutes }} min</td>
                         <td class="px-4 py-3">
                             @if($quiz->is_active)
-                                <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">
+                                <span class="inline-flex items-center gap-1 whitespace-nowrap text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">
                                     <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Active
                                 </span>
                             @else
-                                <span class="text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded">Draft</span>
+                                <span class="whitespace-nowrap text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded">Draft</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-right">
