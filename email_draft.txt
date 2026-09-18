@@ -8,7 +8,15 @@ I am writing to update you that the crashing issue you may have experienced with
 We have generated a new, updated build of the application. You can download and install the new APK from the link below:
 https://drive.google.com/file/d/1BAX-uLC5EWtrp6ylDFEpoB7xM1yD6fmM/view?usp=sharing
 
-Please install this new application, test it thoroughly, and let us know your complete feedback. Your original admin dashboard credentials remain the same. 
+Please install this new application, test it thoroughly, and let us know your complete feedback. Your original admin dashboard credentials remain the same.
+
+Gmail Account:
+Email: quizsappliaction@gmail.com
+Password: Aama@1964
+
+Admin Panel Login:
+Email: quizsappliaction@gmail.com
+Password: Aama@1964
 
 If you face any further issues or need any help, please let me know.
 

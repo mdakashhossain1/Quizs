@@ -14,7 +14,16 @@
         <h2 class="text-lg font-bold text-gray-900">{{ $quizAttempt->quiz->title ?? 'Deleted Quiz' }}</h2>
         <p class="text-xs text-gray-400 mt-0.5">{{ $quizAttempt->user->name ?? 'Unknown user' }} &middot; {{ $quizAttempt->user->email ?? '' }}</p>
     </div>
-    <a href="{{ route('admin.quiz-attempts.index') }}" class="text-sm text-gray-500 hover:text-gray-800">&larr; Back to attempts</a>
+    <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-400">Summary export:</span>
+            <a href="{{ route('admin.quiz-attempts.summary.pdf', $quizAttempt) }}"
+               class="text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded transition-colors">PDF</a>
+            <a href="{{ route('admin.quiz-attempts.summary.csv', $quizAttempt) }}"
+               class="text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded transition-colors">CSV</a>
+        </div>
+        <a href="{{ route('admin.quiz-attempts.index') }}" class="text-sm text-gray-500 hover:text-gray-800">&larr; Back to attempts</a>
+    </div>
 </div>
 
 {{-- Summary --}}
@@ -23,6 +32,8 @@
         <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Status</p>
         @if($quizAttempt->status === 'completed')
             <span class="text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">Completed</span>
+        @elseif($quizAttempt->isStale())
+            <span class="text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded">Abandoned</span>
         @else
             <span class="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">In Progress</span>
         @endif
