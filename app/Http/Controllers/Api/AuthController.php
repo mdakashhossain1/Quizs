@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -416,6 +417,38 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Profile updated successfully.',
+            'user' => $user,
+        ]);
+    }
+
+    /**
+     * Uploads a new profile picture for the authenticated user, replacing
+     * any previous one. Never trusts the original filename — generates a
+     * fresh one so an upload can't collide with or overwrite another public
+     * asset (mirrors CategoryController::storeImage).
+     */
+    public function uploadAvatar(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'avatar' => ['required', 'image', 'max:4096'],
+        ]);
+
+        $user = $request->user();
+
+        // Only delete the previous file if it's one of our own uploads —
+        // a Google-provided photo URL lives on Google's servers, not ours.
+        if ($user->avatar && str_contains($user->avatar, '/uploads/avatars/')) {
+            Storage::disk('avatars')->delete(basename($user->avatar));
+        }
+
+        $filename = Str::uuid().'.'.$validated['avatar']->getClientOriginalExtension();
+        Storage::disk('avatars')->putFileAs('', $validated['avatar'], $filename);
+
+        $user->update(['avatar' => Storage::disk('avatars')->url($filename)]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile picture updated successfully.',
             'user' => $user,
         ]);
     }

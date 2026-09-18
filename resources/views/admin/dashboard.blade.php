@@ -155,9 +155,13 @@
             @forelse($recentUsers as $u)
                 <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-50">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                            {{ strtoupper(substr($u->name, 0, 1)) }}
-                        </div>
+                        @if($u->avatar)
+                            <img src="{{ $u->avatar }}" alt="" class="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-gray-200">
+                        @else
+                            <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                {{ strtoupper(substr($u->name, 0, 1)) }}
+                            </div>
+                        @endif
                         <div>
                             <p class="text-sm font-medium text-gray-900">{{ $u->name }}</p>
                             <p class="text-xs text-gray-400">{{ $u->email }}</p>

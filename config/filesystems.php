@@ -72,6 +72,18 @@ return [
             'report' => false,
         ],
 
+        // Same shared-hosting reasoning as category_images above — user
+        // avatars must be directly web-served, not behind Laravel's private
+        // storage + symlink pattern.
+        'avatars' => [
+            'driver' => 'local',
+            'root' => public_path('uploads/avatars'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/uploads/avatars',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

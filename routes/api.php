@@ -61,6 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('password.changed')->group(function () {
         Route::prefix('auth')->group(function () {
             Route::post('/update-profile', [AuthController::class, 'updateProfile']);
+            Route::post('/avatar', [AuthController::class, 'uploadAvatar']);
             Route::post('/change-password', [AuthController::class, 'changePassword']);
         });
 

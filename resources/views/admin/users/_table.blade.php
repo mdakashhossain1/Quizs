@@ -18,9 +18,13 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-                                    {{ strtoupper(substr($u->name, 0, 1)) }}
-                                </div>
+                                @if($u->avatar)
+                                    <img src="{{ $u->avatar }}" alt="" class="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-gray-200">
+                                @else
+                                    <div class="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+                                        {{ strtoupper(substr($u->name, 0, 1)) }}
+                                    </div>
+                                @endif
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ $u->name }}</p>
                                     <p class="text-xs text-gray-400">{{ $u->email }}</p>
