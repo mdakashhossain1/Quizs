@@ -18,9 +18,15 @@
         <div class="flex items-center gap-2">
             <span class="text-xs text-gray-400">Summary export:</span>
             <a href="{{ route('admin.quiz-attempts.summary.pdf', $quizAttempt) }}"
-               class="text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded transition-colors">PDF</a>
+               class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2-9H8a2 2 0 00-2 2v14a2 2 0 002 2h8a2 2 0 002-2V9l-6-6z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3v5a1 1 0 001 1h5"/></svg>
+                PDF
+            </a>
             <a href="{{ route('admin.quiz-attempts.summary.csv', $quizAttempt) }}"
-               class="text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded transition-colors">CSV</a>
+               class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5V19a2 2 0 002 2h14a2 2 0 002-2v-2.5M7 10l5 5 5-5M12 15V3"/></svg>
+                CSV
+            </a>
         </div>
         <a href="{{ route('admin.quiz-attempts.index') }}" class="text-sm text-gray-500 hover:text-gray-800">&larr; Back to attempts</a>
     </div>
