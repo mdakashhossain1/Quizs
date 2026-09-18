@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') — Quizs Admin</title>
     <link rel="icon" type="image/png" href="{{ asset('logo_icon.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -237,6 +238,7 @@
         document.getElementById('quizs-sidebar-overlay').classList.toggle('hidden', !show);
     }
 </script>
+<script src="{{ asset('js/admin-ajax-table.js') }}"></script>
 
 </body>
 </html>

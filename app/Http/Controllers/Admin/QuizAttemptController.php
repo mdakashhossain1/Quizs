@@ -17,6 +17,11 @@ class QuizAttemptController extends Controller
     public function index(Request $request): View
     {
         $attempts = $this->filteredQuery($request)->paginate(15)->withQueryString();
+
+        if ($request->ajax()) {
+            return view('admin.quiz-attempts._table', compact('attempts'));
+        }
+
         $quizzes = Quiz::orderBy('title')->get();
         $categories = Category::orderBy('name')->get();
 

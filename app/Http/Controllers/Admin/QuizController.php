@@ -25,6 +25,11 @@ class QuizController extends Controller
         }
 
         $quizzes = $query->orderBy('sort_order')->latest()->paginate(15);
+
+        if ($request->ajax()) {
+            return view('admin.quizzes._table', compact('quizzes'));
+        }
+
         $categories = Category::orderBy('name')->get();
 
         return view('admin.quizzes.index', compact('quizzes', 'categories'));

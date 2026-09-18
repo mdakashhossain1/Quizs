@@ -45,6 +45,11 @@ class QuestionController extends Controller
         }
 
         $questions = $query->orderBy('sort_order')->latest()->paginate(15)->withQueryString();
+
+        if ($request->ajax()) {
+            return view('admin.questions._table', compact('questions'));
+        }
+
         $quizzes = Quiz::orderBy('title')->get();
 
         return view('admin.questions.index', compact('questions', 'quizzes'));
