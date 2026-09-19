@@ -54,7 +54,19 @@ Google Play Console requires this exact keystore to sign and verify all current 
     8F:DB:EB:E2:B6:21:4D:3F:F0:85:93:B4:C4:87:D3:EC:81:1E:72:6C:79:1D:80:0E:07:0A:48:D3:26:08:80:42
 
 ======================================================================
-4. PRODUCTION BUILDS FOR RELEASE & TESTING
+4. LEGAL & STORE LISTING URLS (FOR GOOGLE PLAY CONSOLE)
+======================================================================
+• Privacy Policy URL:
+  https://quizs.in/privacy
+
+• Terms & Conditions URL:
+  https://quizs.in/terms
+
+• Account Deletion Request URL (Google Play Data Safety Requirement):
+  https://quizs.in/delete-account
+
+======================================================================
+5. PRODUCTION BUILDS FOR RELEASE & TESTING
 ======================================================================
 Both builds have been generated and signed with the official release key above:
 
