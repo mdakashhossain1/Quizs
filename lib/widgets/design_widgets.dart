@@ -9,6 +9,7 @@ import '../ads/banner_ad_slot.dart';
 import '../l10n/app_strings.dart';
 import '../models/question_model.dart';
 import '../services/quiz_api_service.dart';
+import 'marquee_text.dart';
 
 abstract final class QuizColors {
   static const purple = Color(0xFF53009C);
@@ -886,10 +887,10 @@ class QuizCard extends StatelessWidget {
           13,
           228,
           26,
-          Text(
-            displayTitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          MarqueeText(
+            text: displayTitle,
+            pauseDuration:
+                Duration(milliseconds: 1400 + (index % 4) * 250),
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: displayTitle.length > 25

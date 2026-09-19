@@ -82,63 +82,102 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   static const String _privacyPolicyText = '''
-Last updated: September 2026
+Effective Date: September 19, 2026
 
-Quizs ("we", "us") is a bilingual (English/Hindi) quiz app. This policy explains what data we collect and how we use it.
+Quizs ("we", "us", "our") is a bilingual (English & Hindi) educational trivia and quiz mobile application operated by Arknox (package: com.quizs.application.arknox, domain: https://quizs.in). We are committed to safeguarding your personal data in full compliance with GDPR, CCPA/CPRA, India DPDPA 2023, and Google Play Developer Policies.
 
-Information we collect
-• Account details you provide: name, email address, and an optional profile photo.
-• Gameplay data: quizzes attempted, answers, scores, streaks, and leaderboard rankings.
-• Device information: a device identifier and push-notification token, used to keep you signed in and to deliver notifications.
-• Diagnostic data: crash and performance reports (via Firebase Crashlytics) to help us fix bugs.
+1. INFORMATION WE COLLECT
+• Account Credentials: Name, email address, password hash (bcrypt), and optional profile avatar via camera/gallery (image_picker).
+• Google Sign-In (OAuth): Verified email, display name, Google Subject ID, and public avatar URL.
+• Gameplay & Learning Metrics: Quizzes attempted, questions answered, response timestamps, correctness, chosen options, accuracy rates, accumulated XP, player level, and virtual coins.
+• Attendance & Streaks: Daily check-in dates, consecutive streak counts, missed days, and bonus milestones.
+• Leaderboard Data: Public display name, avatar, XP, accuracy, and level for Daily, Weekly, and All-Time global rankings.
+• Device & Hardware Telemetry: Device model, manufacturer, OS version, screen metrics, language/locale, and time zone.
+• Push Notification Identifiers: Firebase Cloud Messaging (FCM) device registration tokens.
+• Diagnostics & Crash Reporting: Anonymous stack traces, crash logs, and memory state via Firebase Crashlytics.
+• Advertising Identifiers: Google Advertising ID (GAID on Android) and IDFA (on iOS, where authorized), IP address, and interaction metrics.
 
-How we use your information
-• To operate core features: quiz play, scoring, streaks, and leaderboards.
-• To send you notifications about your activity, streaks, and app updates (you can turn these off in Profile > Notification).
-• To show ads that help keep Quizs free, served through Google Mobile Ads. These may use advertising identifiers as governed by Google's own policies.
-• To diagnose crashes and improve app stability and performance.
+2. PURPOSES OF PROCESSING
+• Delivering interactive quiz gameplay, real-time scoring, bilingual translations, and comprehensive explanations.
+• Maintaining player level progression, attendance check-in streaks, and public leaderboard rankings.
+• Sending opt-in notifications for daily study reminders, streak freeze alerts, and new educational topics.
+• Showing non-personalized and personalized in-app ads (banner, interstitial, rewarded) through Google Mobile Ads (AdMob) to sustain free access.
+• Diagnosing crashes, patching software bugs, and protecting platform security against bots, cheating, and unauthorized API tampering.
 
-Data sharing
-We do not sell your personal data. We share data only with the service providers that run the app on our behalf (e.g. Firebase for authentication, notifications, and crash reporting; Google Mobile Ads for advertising), and only as needed for them to provide that service.
+3. ADVERTISING & GOOGLE ADMOB
+Quizs integrates the official Google Mobile Ads SDK (AdMob). We display banner slots, interstitial ads between quizzes, and optional rewarded video ads. For users in the EEA and UK, Google UMP CMP consent dialogs are implemented. You can reset or delete your Advertising ID in Android Settings > Google > Ads, or via iOS Settings > Privacy & Security > Tracking.
 
-Data retention and control
-Your account data is retained while your account is active. You can update your profile at any time from Profile > Edit Profile, and you can request account deletion by contacting us.
+4. THIRD-PARTY SUBPROCESSORS
+We partner only with vetted industry leaders under strict Data Processing Agreements:
+• Google Firebase (Authentication, FCM push notifications, Crashlytics).
+• Google Mobile Ads / AdMob (Monetization & ad delivery).
+• Cloud Hosting & Database Infrastructure (Encrypted at rest with AES-256).
 
-Children's privacy
-Quizs is intended for a general audience and does not knowingly collect personal data from children under 13 beyond what is needed for basic gameplay.
+5. DATA RETENTION & SECURITY
+• Data in Transit: TLS 1.3 encryption across all HTTPS endpoints.
+• Data on Device: Session JWT tokens stored in hardware-backed keystores via FlutterSecureStorage.
+• Retention: Active account data is retained while your account remains open. Crashlytics logs purge after 90 days.
 
-Contact
-Questions about this policy can be sent to the app's support contact listed on the Play Store/App Store listing.
+6. IN-APP ACCOUNT DELETION (PLAY STORE §13.3)
+You have the permanent right to delete your account and all associated data:
+Go to Profile > Edit Profile > Tap "Delete Account" > Confirm Deletion.
+All user records, quiz history, streak progress, and authentication tokens are immediately and permanently eradicated from our databases. You can also email quizsappliaction@gmail.com.
+
+7. YOUR GLOBAL RIGHTS (GDPR / CCPA / DPDPA)
+You have the right to access, rectify, restrict, export, or erase your personal data, and to opt-out of behavioral ad tracking.
+
+8. CHILDREN'S PRIVACY
+Quizs is intended for a general audience aged 13+. We do not knowingly collect personal data from children under 13.
+
+For the full 5,000+ word Privacy Policy, visit: https://quizs.in/privacy
+Contact our Data Protection Officer: quizsappliaction@gmail.com
 ''';
 
   static const String _termsConditionsText = '''
-Last updated: September 2026
+Effective Date: September 19, 2026
 
-By creating an account or using Quizs, you agree to the following terms.
+By creating an account, signing in, or playing Quizs, you enter into a legally binding agreement with Arknox governed by these Terms and Conditions.
 
-Your account
-You're responsible for keeping your login credentials secure and for all activity under your account. You must provide accurate information when you sign up.
+1. YOUR ACCOUNT & ELIGIBILITY
+• You must be at least 13 years old to use the Service. Minors between 13 and 18 require parental or legal guardian consent.
+• You must provide accurate registration details (valid email) and maintain the confidentiality of your password.
+• You are solely responsible for all activities occurring under your account. You may not sell, transfer, or share your account.
 
-Fair play
-Quiz scores, streaks, and leaderboard rankings are meant to reflect genuine play. Using automated tools, exploits, or multiple accounts to manipulate scores or rankings is not allowed and may result in your account being suspended.
+2. FAIR PLAY & ANTI-CHEATING POLICY
+Quizs strictly enforces fair play on all competitive leaderboards:
+• Prohibited: Automated scripts, tapping bots, screen scrapers, memory injectors, modified APK binaries, packet tampering (MITM proxies), and multi-accounting (sockpuppets).
+• Penalties: Accounts detected using automated cheats or exploits will face immediate score resets, streak forfeiture, leaderboard bans, and permanent account termination.
 
-Content
-Quiz questions, translations, and explanations are provided for informational and entertainment purposes. While we work to keep them accurate, we don't guarantee that every question or answer is error-free.
+3. VIRTUAL ECONOMY: COINS, XP & STREAKS
+• Zero Monetary Value: Virtual Coins, XP, Level progression, and Attendance Streaks have NO cash, cryptocurrency, or real-world monetary value.
+• No Redemption or Refunds: Virtual Coins cannot be redeemed, sold, refunded, or cashed out for fiat currency or physical merchandise.
+• Limited License: Virtual Items are licensed to you on a revocable, non-exclusive basis. Quizs reserves the right to rebalance or adjust progression algorithms at any time without liability.
 
-Advertising
-Quizs is supported by in-app advertising served through Google Mobile Ads. Ads are shown at defined points in the app (e.g. between quiz questions) and are subject to Google's own advertising policies.
+4. EDUCATIONAL CONTENT & TRIVIA DISCLAIMER
+• Questions, answers, hints, and explanations in English and Hindi are provided for general educational, cognitive training, and entertainment purposes only.
+• Quizs is not an accredited academic institution. We make no warranty that trivia content is error-free, legally definitive, or suitable for professional/civil service exams.
 
-Acceptable use
-You agree not to misuse the app — including attempting to disrupt its operation, reverse-engineer it beyond what's legally permitted, or use it to harass other users.
+5. INTELLECTUAL PROPERTY & LIMITED LICENSE
+• All question databases, translations, illustrations, brand trademarks, sound effects, and software code are the exclusive intellectual property of Arknox.
+• You are granted a limited, personal, non-commercial, revocable license to use the app on personal devices. Reverse engineering or scraping is strictly prohibited.
 
-Changes to these terms
-We may update these terms as the app evolves. Continuing to use Quizs after an update means you accept the revised terms.
+6. IN-APP ADVERTISING (ADMOB)
+• Quizs is supported by programmatic advertising served by Google Mobile Ads (AdMob). We do not endorse third-party products advertised in the app.
+• Your interactions and transactions with third-party advertisers are solely between you and that third party.
 
-Termination
-We may suspend or terminate accounts that violate these terms, including fair-play violations or abusive behavior.
+7. TERMINATION & IN-APP DELETION
+• You may terminate your account at any time via Profile > Edit Profile > Delete Account.
+• Quizs reserves the right to suspend or terminate accounts for terms violations, cheating, or abusive conduct without prior notice.
 
-Contact
-Questions about these terms can be sent to the app's support contact listed on the Play Store/App Store listing.
+8. DISCLAIMER OF WARRANTIES & LIABILITY LIMITATION
+• The Service is provided strictly "AS IS" and "AS AVAILABLE" without warranties of any kind.
+• To the maximum extent permitted by law, the Quizs Parties shall not be liable for indirect, incidental, punitive, or consequential damages. Maximum aggregate liability is capped at INR ₹500 or USD \$10.00.
+
+9. GOVERNING LAW & ARBITRATION
+• These Terms are governed by the laws of India. Disputes shall be resolved through mandatory 30-day informal negotiation, followed by binding individual arbitration. Class action proceedings are waived.
+
+For the full 5,000+ word Terms of Service, visit: https://quizs.in/terms
+Legal Inquiries: quizsappliaction@gmail.com
 ''';
 
   void _showPrivacyPolicyFallback() {
@@ -150,13 +189,21 @@ Questions about these terms can be sent to the app's support contact listed on t
         content: const SingleChildScrollView(
           child: Text(
             _privacyPolicyText,
-            style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, height: 1.5),
+            style: TextStyle(fontFamily: 'Poppins', fontSize: 12.0, height: 1.45),
           ),
         ),
         actions: [
           TextButton(
+            onPressed: () => launchUrl(
+              Uri.parse(_privacyPolicyUrl),
+              mode: LaunchMode.externalApplication,
+            ),
+            child: const Text('Open Full Web Policy',
+                style: TextStyle(color: QuizColors.purple, fontWeight: FontWeight.w700)),
+          ),
+          TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close', style: TextStyle(color: QuizColors.purple)),
+            child: const Text('Close', style: TextStyle(color: Colors.grey)),
           ),
         ],
       ),
@@ -348,13 +395,21 @@ Questions about these terms can be sent to the app's support contact listed on t
         content: const SingleChildScrollView(
           child: Text(
             _termsConditionsText,
-            style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, height: 1.5),
+            style: TextStyle(fontFamily: 'Poppins', fontSize: 12.0, height: 1.45),
           ),
         ),
         actions: [
           TextButton(
+            onPressed: () => launchUrl(
+              Uri.parse(_termsConditionsUrl),
+              mode: LaunchMode.externalApplication,
+            ),
+            child: const Text('Open Full Web Terms',
+                style: TextStyle(color: QuizColors.purple, fontWeight: FontWeight.w700)),
+          ),
+          TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close', style: TextStyle(color: QuizColors.purple)),
+            child: const Text('Close', style: TextStyle(color: Colors.grey)),
           ),
         ],
       ),
