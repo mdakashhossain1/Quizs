@@ -49,3 +49,9 @@ app.*.map.json
 ssh.txt
 email_draft.txt
 *.sql
+
+# Keystore & signing credentials
+*.jks
+*.keystore
+android/key.properties
+key.properties

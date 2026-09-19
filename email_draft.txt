@@ -1,26 +1,81 @@
-Subject: Re: Quizs Admin Dashboard & Updated Application Access
-Date: September 17, 2026
+Subject: Quizs Application - Production Release Build, Keystore & Account Credentials
+Date: September 19, 2026
 
 Hi A.Krishna Rao,
 
-I am writing to update you that the crashing issue you may have experienced with the previous release version of the application has now been completely resolved. 
+We have prepared the official production release builds for the Quizs application and generated the permanent release signing keystore required for the Google Play Store.
 
-We have generated a new, updated build of the application. You can download and install the new APK from the link below:
-https://drive.google.com/file/d/1BAX-uLC5EWtrp6ylDFEpoB7xM1yD6fmM/view?usp=sharing
+Please save this email and store a backup of all credentials and keystore files in a safe location (e.g., Google Drive, external hard drive). These keys are strictly required to release future updates on Google Play.
 
-Please install this new application, test it thoroughly, and let us know your complete feedback. Your original admin dashboard credentials remain the same.
+======================================================================
+1. GOOGLE & ADMIN ACCOUNT CREDENTIALS
+======================================================================
+• Primary Gmail Account:
+  Email: Cuizs686@gmail.com
+  Password: Aama@1964
 
-Also, the logos for the categories are now in place and showing correctly in the application.
+• Secondary / Previous Account:
+  Email: quizsappliaction@gmail.com
+  Password: Aama@1964
 
-Gmail Account:
-Email: quizsappliaction@gmail.com
-Password: Aama@1964
+• Admin Panel Login:
+  Email: quizsappliaction@gmail.com (or Cuizs686@gmail.com)
+  Password: Aama@1964
 
-Admin Panel Login:
-Email: quizsappliaction@gmail.com
-Password: Aama@1964
+======================================================================
+2. CLIENT & REGISTRATION DETAILS
+======================================================================
+• Name: A.Krishna Rao
+• Mobile No: +91 7788872183
+• Address: At-Uma nagar 7th lane, Po-Lanjipalli, Dist-Ganjam
+• City: Berhampur
+• State: Odisha
+• PIN Code: 760008
 
-If you face any further issues or need any help, please let me know.
+======================================================================
+3. PRODUCTION APP SIGNING KEYSTORE (CRITICAL - DO NOT LOSE)
+======================================================================
+Google Play Console requires this exact keystore to sign and verify all current and future updates of the Quizs app. If this keystore or its passwords are lost, the app cannot be updated on the Google Play Store.
+
+• Keystore File: upload-keystore.jks
+• Keystore Storage Location in Project: android/app/upload-keystore.jks
+• Keystore Backup on PC: C:\Users\ARKNOX\upload-keystore.jks
+• Key Alias: upload
+• Keystore Password: Aama@1964
+• Key Password: Aama@1964
+• Validity: 10,000 days (Valid until February 4, 2054)
+• Certificate Distinguished Name (DN):
+  CN=A.Krishna Rao, OU=Quizs, O=Quizs, L=Berhampur, ST=Odisha, C=IN
+
+• Certificate Fingerprints (For Firebase, Google Sign-In & Play Console):
+  - SHA-1:
+    83:DB:A5:A8:A0:31:5C:F1:35:83:0D:9B:30:19:67:49:2C:DA:51:AD
+  - SHA-256:
+    8F:DB:EB:E2:B6:21:4D:3F:F0:85:93:B4:C4:87:D3:EC:81:1E:72:6C:79:1D:80:0E:07:0A:48:D3:26:08:80:42
+
+======================================================================
+4. PRODUCTION BUILDS FOR RELEASE & TESTING
+======================================================================
+Both builds have been generated and signed with the official release key above:
+
+1) Google Play Store App Bundle (.aab):
+   • File: build/app/outputs/bundle/release/app-release.aab
+   • Size: ~67.3 MB
+   • Usage: This is the official file to upload to the Google Play Console under Production / Closed Testing tracks.
+
+2) Direct Test Release APK (.apk):
+   • File: build/app/outputs/flutter-apk/app-release.apk
+   • Size: ~63.1 MB
+   • Usage: Standalone release-signed APK that you can directly install and test on physical Android phones.
+
+======================================================================
+5. IMPORTANT BACKUP INSTRUCTIONS
+======================================================================
+1. Download and copy "upload-keystore.jks" to at least two secure places (e.g., your personal Google Drive and a secure USB drive).
+2. Never share your keystore passwords or upload the keystore file to public repositories.
+3. Keep this email saved in your starred or archived folder for permanent reference.
+
+If you have any questions or need assistance during the Google Play Console publishing process, please feel free to reach out.
 
 Best regards,
 
