@@ -9,7 +9,6 @@ use App\Models\Question;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\QuizAttemptAnswer;
-use App\Models\User;
 use App\Services\PerformanceMessageService;
 use App\Services\QuizRankingService;
 use App\Services\QuizStatsService;
@@ -27,7 +26,7 @@ class QuizApiController extends Controller
     public function categories(): JsonResponse
     {
         $categories = Category::where('is_active', true)
-            ->withCount(['quizzes' => fn ($q) => $q->where('is_active', true)])
+            ->withCount(['quizzes' => fn ($q) => $q->where('is_active', true)->has('questions')])
             ->orderBy('sort_order')
             ->get();
 
@@ -48,9 +47,13 @@ class QuizApiController extends Controller
         $category = Category::where('is_active', true)->findOrFail($categoryId);
         $lang = $request->query('language', 'en');
 
+        // A quiz shell created in the admin panel before any questions are
+        // added must never reach the app — the client has no "empty quiz"
+        // state, so it dead-ends on a blank/error screen when attempted.
         $quizzes = Quiz::where('category_id', $category->id)
             ->where(fn ($q) => $q->where('language', $lang)->orWhereNull('language'))
             ->where('is_active', true)
+            ->has('questions')
             ->withCount('questions')
             ->orderBy('sort_order')
             ->get();
@@ -338,20 +341,27 @@ class QuizApiController extends Controller
     }
 
     /**
-     * Get global leaderboard.
+     * Site-wide leaderboard — same response shape as a single attempt's
+     * result (see [attemptResult]), so the app's existing results/podium
+     * screen can render this without any new UI, just totals across ALL of
+     * the requesting user's completed quizzes instead of just one.
      */
-    public function leaderboard(): JsonResponse
+    public function globalLeaderboard(Request $request): JsonResponse
     {
-        $leaders = User::where('role', '!=', 'admin')
-            ->where('is_active', true)
-            ->orderByDesc('score')
-            ->orderByDesc('streak')
-            ->limit(20)
-            ->get(['id', 'name', 'avatar', 'score', 'streak']);
+        $summary = QuizRankingService::globalSummaryFor($request->user()->id);
+        $percentage = $summary['accuracy'];
 
         return response()->json([
             'success' => true,
-            'leaderboard' => $leaders,
+            'result' => [
+                'total_questions' => $summary['total_questions'],
+                'correct_answers' => $summary['correct_answers'],
+                'wrong_answers' => $summary['wrong_answers'],
+                'accuracy' => $summary['accuracy'],
+                'percentage' => $percentage,
+                'performance_state' => PerformanceMessageService::stateFor($percentage),
+                'quiz_ranking' => $summary['ranking'],
+            ],
         ]);
     }
 

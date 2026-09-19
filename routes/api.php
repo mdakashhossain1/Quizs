@@ -39,7 +39,6 @@ Route::get('/cron/run-queue', [CronController::class, 'runQueue']);
 Route::get('/categories', [QuizApiController::class, 'categories']);
 Route::get('/categories/{id}/quizzes', [QuizApiController::class, 'quizzesByCategory']);
 Route::get('/quizzes/{id}', [QuizApiController::class, 'quizDetail']);
-Route::get('/leaderboard', [QuizApiController::class, 'leaderboard']);
 
 // Protected User & Quiz Routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -70,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/attempts/{attempt}/answer', [QuizApiController::class, 'saveAnswer']);
         Route::post('/attempts/{attempt}/submit', [QuizApiController::class, 'submitAttempt']);
         Route::get('/user/history', [QuizApiController::class, 'userHistory']);
+        Route::get('/leaderboard', [QuizApiController::class, 'globalLeaderboard']);
 
         Route::prefix('target')->group(function () {
             Route::get('/today', [TargetController::class, 'today']);
