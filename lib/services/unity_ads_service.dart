@@ -7,15 +7,15 @@ class UnityAdsService {
   UnityAdsService._();
   static final UnityAdsService instance = UnityAdsService._();
 
-  // Standard test Game ID for Unity Ads on Android
-  static const String androidGameId = '5268482';
+  // Unity Ads Game ID for Android
+  static const String androidGameId = '800377165';
   static const String interstitialPlacementId = 'Interstitial_Android';
   static const String bannerPlacementId = 'Banner_Android';
 
   bool _isInitialized = false;
   bool _isLoadingAd = false;
   bool _isAdLoaded = false;
-  bool _testMode = true;
+  bool _testMode = kDebugMode;
 
   /// Unity Ads in this app is restricted solely to Android
   bool get isSupported =>
@@ -27,11 +27,11 @@ class UnityAdsService {
   /// Initializes the Unity Ads SDK if running on Android.
   Future<void> initialize({
     String gameId = androidGameId,
-    bool testMode = true,
+    bool? testMode,
   }) async {
     if (!isSupported || _isInitialized) return;
 
-    _testMode = testMode;
+    _testMode = testMode ?? kDebugMode;
 
     try {
       await UnityAds.init(

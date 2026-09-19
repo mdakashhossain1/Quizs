@@ -85,6 +85,8 @@ class DesignCanvas extends StatelessWidget {
     this.adBefore,
     this.darkBanner,
     this.bottomNav,
+    this.fixedBackground,
+    this.scrollController,
   });
   final List<Widget> children;
   final Color color;
@@ -94,6 +96,8 @@ class DesignCanvas extends StatelessWidget {
   final double? adBefore;
   final bool? darkBanner;
   final Widget? bottomNav;
+  final Widget? fixedBackground;
+  final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +122,7 @@ class DesignCanvas extends StatelessWidget {
         child: Scaffold(
           extendBodyBehindAppBar: true,
           extendBody: true,
-          backgroundColor: color,
+          backgroundColor: fixedBackground != null ? topColor : color,
           body: SafeArea(
             top: false,
             child: LayoutBuilder(
@@ -152,8 +156,27 @@ class DesignCanvas extends StatelessWidget {
                       key: const ValueKey('design-canvas'),
                       child: Stack(
                         children: [
+                          if (fixedBackground != null)
+                            Positioned(
+                              left: 0,
+                              top: 0,
+                              width: width,
+                              height: viewportHeight,
+                              child: ClipRect(
+                                child: FittedBox(
+                                  fit: BoxFit.cover,
+                                  alignment: Alignment.topCenter,
+                                  child: SizedBox(
+                                    width: 412,
+                                    height: math.max(917.0, viewportHeight / scale),
+                                    child: fixedBackground!,
+                                  ),
+                                ),
+                              ),
+                            ),
                           Positioned.fill(
                             child: SingleChildScrollView(
+                              controller: scrollController,
                               padding: EdgeInsets.only(
                                 bottom: bottomNav != null ? (96 * scale) : 20,
                               ),
@@ -161,7 +184,9 @@ class DesignCanvas extends StatelessWidget {
                                 width: width,
                                 height: contentHeight,
                                 child: ColoredBox(
-                                  color: color,
+                                  color: fixedBackground != null
+                                      ? Colors.transparent
+                                      : color,
                                   child: Stack(
                                     children: [
                                       Positioned(

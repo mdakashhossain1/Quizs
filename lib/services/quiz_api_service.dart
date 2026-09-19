@@ -148,8 +148,22 @@ class QuizApiService {
 
   /// Finalizes [attemptId] from its already-saved answers and returns the
   /// server-authoritative result (score/accuracy/streak/quiz ranking).
-  Future<Map<String, dynamic>> submitAttempt(int attemptId) async {
-    final data = await ApiClient.instance.post('/attempts/$attemptId/submit');
+  Future<Map<String, dynamic>> submitAttempt(
+    int attemptId, {
+    int? clientCorrectCount,
+    int? clientWrongCount,
+  }) async {
+    final body = <String, dynamic>{};
+    if (clientCorrectCount != null) {
+      body['client_correct_count'] = clientCorrectCount;
+    }
+    if (clientWrongCount != null) {
+      body['client_wrong_count'] = clientWrongCount;
+    }
+    final data = await ApiClient.instance.post(
+      '/attempts/$attemptId/submit',
+      body: body.isNotEmpty ? body : null,
+    );
     return data['result'] as Map<String, dynamic>? ?? {};
   }
 

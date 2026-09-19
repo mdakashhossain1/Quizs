@@ -172,8 +172,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
       adAfter: 840,
       topColor: const Color(0xFF31005C),
       darkBanner: false,
+      fixedBackground: const QuestionBackground(results: true),
       children: [
-        const Positioned.fill(child: QuestionBackground(results: true)),
         label(
           'Quizs',
           159,
@@ -445,8 +445,8 @@ class _ResultsLoading extends StatelessWidget {
         adAfter: 400,
         topColor: const Color(0xFF31005C),
         darkBanner: false,
+        fixedBackground: const QuestionBackground(results: true),
         children: [
-          const Positioned.fill(child: QuestionBackground(results: true)),
           backButton(context, compact: true),
           at(
             0,
@@ -470,8 +470,8 @@ class _ResultsError extends StatelessWidget {
         adAfter: 400,
         topColor: const Color(0xFF31005C),
         darkBanner: false,
+        fixedBackground: const QuestionBackground(results: true),
         children: [
-          const Positioned.fill(child: QuestionBackground(results: true)),
           backButton(context, compact: true),
           at(
             26,

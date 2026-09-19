@@ -51,9 +51,9 @@ class QuizStatsService
                 ->whereIn('quiz_id', $ids)
                 ->where(function ($q) use ($today) {
                     $q->whereDate('completed_at', $today)
-                      ->orWhere(function ($q2) use ($today) {
-                          $q2->where('status', 'in_progress')->whereDate('started_at', $today);
-                      });
+                      ->orWhereDate('started_at', $today)
+                      ->orWhereDate('created_at', $today)
+                      ->orWhereHas('answers', fn ($ans) => $ans->whereDate('answered_at', $today));
                 })
                 ->withCount('answers')
                 ->get()

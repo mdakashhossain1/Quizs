@@ -43,6 +43,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
   int _countdown = 5;
   Timer? _countdownTimer;
   int _answeredInSessionCount = 0;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -69,6 +70,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
   void dispose() {
     AppLanguage.instance.removeListener(_onLanguageChanged);
     _countdownTimer?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -239,6 +241,9 @@ class _QuestionScreenState extends State<QuestionScreen> {
 
   void _proceedToNextOrFinish() {
     if (_currentIndex < _questions.length - 1) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0.0);
+      }
       setState(() {
         _currentIndex++;
         _selectedOption = _userAnswers[_currentIndex];
@@ -256,6 +261,9 @@ class _QuestionScreenState extends State<QuestionScreen> {
   void _previousQuestion() {
     _countdownTimer?.cancel();
     if (_currentIndex > 0) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0.0);
+      }
       setState(() {
         _currentIndex--;
         _selectedOption = _userAnswers[_currentIndex];
@@ -295,14 +303,18 @@ class _QuestionScreenState extends State<QuestionScreen> {
     final attemptId = _attemptId;
     if (attemptId != null) {
       try {
-        final result = await QuizApiService.instance.submitAttempt(attemptId);
+        final result = await QuizApiService.instance.submitAttempt(
+          attemptId,
+          clientCorrectCount: right,
+          clientWrongCount: wrong,
+        );
         final serverTotal = (result['total_questions'] as num?)?.toInt();
         final serverRight = (result['correct_answers'] as num?)?.toInt();
         if (serverTotal != null && serverRight != null) {
           total = serverTotal;
-          right = serverRight;
-          wrong = (result['wrong_answers'] as num?)?.toInt() ?? (serverTotal - serverRight);
-          pct = (result['percentage'] as num?)?.round() ?? pct;
+          right = math.max(right, serverRight);
+          wrong = (result['wrong_answers'] as num?)?.toInt() ?? (total - right);
+          pct = total > 0 ? ((right / total) * 100).round() : pct;
         }
         accuracy = (result['accuracy'] as num?)?.toDouble();
         timeTakenSeconds = (result['time_taken_seconds'] as num?)?.toInt();
@@ -421,8 +433,8 @@ class _QuestionScreenState extends State<QuestionScreen> {
       return DesignCanvas(
         adAfter: 600,
         topColor: const Color(0xFF31005C),
+        fixedBackground: const QuestionBackground(),
         children: [
-          const Positioned.fill(child: QuestionBackground()),
           label(
             'Quizs',
             159,
@@ -537,8 +549,9 @@ class _QuestionScreenState extends State<QuestionScreen> {
     return DesignCanvas(
       adAfter: adAfterY,
       topColor: const Color(0xFF31005C),
+      fixedBackground: const QuestionBackground(),
+      scrollController: _scrollController,
       children: [
-        const Positioned.fill(child: QuestionBackground()),
         label(
           'Quizs',
           159,
