@@ -25,7 +25,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   @override
   void initState() {
     super.initState();
+    AppLanguage.instance.addListener(_onLanguageChanged);
     _load();
+  }
+
+  @override
+  void dispose() {
+    AppLanguage.instance.removeListener(_onLanguageChanged);
+    super.dispose();
+  }
+
+  void _onLanguageChanged() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _load() async {
@@ -63,10 +74,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       };
 
   String _statusLabel(String status) => switch (status.toLowerCase()) {
-        'present' => 'Present',
-        'absent'  => 'Absent',
-        'leave'   => 'Leave',
-        _         => 'Not Marked',
+        'present' => AppStrings.t('present'),
+        'absent'  => AppStrings.t('absent'),
+        'leave'   => AppStrings.t('leave'),
+        _         => AppStrings.t('not_marked'),
       };
 
   IconData _statusIcon(String status) => switch (status.toLowerCase()) {
@@ -132,7 +143,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         at(0, -139, 412, 467, const PurpleHeader()),
         backButton(context),
         label(
-          AppStrings.t('attendance'),
+          AppStrings.t('attendance_title'),
           0,
           116,
           28,
@@ -146,10 +157,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           150,
           412,
           22,
-          const Center(
+          Center(
             child: Text(
-              'Official School Attendance Log',
-              style: TextStyle(
+              AppStrings.t('official_attendance_log'),
+              style: const TextStyle(
                 fontFamily: 'Quicksand',
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -234,10 +245,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       color: QuizColors.purple, size: 28),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Could not load attendance data.',
+                Text(
+                  AppStrings.t('could_not_load_attendance'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -245,10 +256,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Please check your internet connection.',
+                Text(
+                  AppStrings.t('check_internet_connection'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Quicksand',
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
@@ -271,9 +282,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         ),
                       ],
                     ),
-                    child: const Text(
-                      'Retry',
-                      style: TextStyle(
+                    child: Text(
+                      AppStrings.t('retry'),
+                      style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -300,7 +311,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 label: _statusLabel(_today?.status ?? ''),
                 color: _statusColor(_today?.status ?? ''),
                 icon: _statusIcon(_today?.status ?? ''),
-                date: _today?.date ?? 'Today',
+                date: _today?.date ?? AppStrings.t('today'),
               ),
             ),
           ),
@@ -317,7 +328,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 children: [
                   Expanded(
                     child: _SummaryTile(
-                      label: 'Present',
+                      label: AppStrings.t('present'),
                       value: '${_summary.presentDays}',
                       color: _statusColor('present'),
                       icon: Icons.check_circle_outline_rounded,
@@ -326,7 +337,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _SummaryTile(
-                      label: 'Absent',
+                      label: AppStrings.t('absent'),
                       value: '${_summary.absentDays}',
                       color: _statusColor('absent'),
                       icon: Icons.highlight_off_rounded,
@@ -335,7 +346,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _SummaryTile(
-                      label: 'Leave',
+                      label: AppStrings.t('leave'),
                       value: '${_summary.leaveDays}',
                       color: _statusColor('leave'),
                       icon: Icons.pause_circle_outline_rounded,
@@ -390,9 +401,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Attendance Log',
-                        style: TextStyle(
+                      Text(
+                        AppStrings.t('attendance_log'),
+                        style: const TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
@@ -471,9 +482,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: const Color(0xFFEFE8F8)),
                   ),
-                  child: const NoDataView(
-                    message: 'No Attendance Recorded Yet',
-                    subMessage: 'Your attendance records will appear here as your teachers mark it.',
+                  child: NoDataView(
+                    message: AppStrings.t('no_attendance_recorded'),
+                    subMessage: AppStrings.t('no_attendance_sub'),
                     imageSize: 84,
                   ),
                 ),
@@ -602,12 +613,12 @@ class _TodayCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 5),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          "TODAY'S STATUS",
+                          AppStrings.t('todays_status'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamily: 'Quicksand',
                             fontSize: 10.5,
                             fontWeight: FontWeight.w700,
@@ -643,7 +654,7 @@ class _TodayCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          date.isNotEmpty ? date : 'Official Record',
+                          date.isNotEmpty ? date : AppStrings.t('official_record'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -775,7 +786,7 @@ class _SummaryTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 2),
                 Text(
-                  'd',
+                  AppStrings.t('days_short'),
                   style: TextStyle(
                     fontFamily: 'Quicksand',
                     fontSize: 12,
@@ -818,7 +829,9 @@ class _AttendanceRateCard extends StatelessWidget {
     final badgeColor = isGood
         ? const Color(0xFF10BA65)
         : (isMedium ? const Color(0xFFFF9800) : const Color(0xFFE53935));
-    final badgeLabel = isGood ? 'Great' : (isMedium ? 'Average' : 'Low');
+    final badgeLabel = isGood
+        ? AppStrings.t('great')
+        : (isMedium ? AppStrings.t('average') : AppStrings.t('low'));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -874,9 +887,9 @@ class _AttendanceRateCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Text(
-                      'Overall Rate',
-                      style: TextStyle(
+                    Text(
+                      AppStrings.t('overall_rate'),
+                      style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
@@ -948,8 +961,8 @@ class _AttendanceRateCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   totalDays > 0
-                      ? '$presentDays of $totalDays sessions attended'
-                      : 'Updated by school administration',
+                      ? '$presentDays ${AppStrings.t('of_word')} $totalDays ${AppStrings.t('sessions_attended')}'
+                      : AppStrings.t('updated_by_admin'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -1040,7 +1053,7 @@ class _HistoryRow extends StatelessWidget {
                   Text(
                     record.note != null && record.note!.isNotEmpty
                         ? record.note!
-                        : 'Official Attendance Entry',
+                        : AppStrings.t('official_attendance_entry'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
