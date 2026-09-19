@@ -41,14 +41,13 @@
 -keep class com.google.android.gms.auth.** { *; }
 -keep class com.google.android.gms.common.** { *; }
 -keep class com.google.android.gms.internal.** { *; }
-
 # ============================================================
-# Google Mobile Ads (AdMob)
+# Unity Ads
 # ============================================================
--keep class com.google.android.gms.ads.** { *; }
--dontwarn com.google.android.gms.ads.**
--keep class com.google.ads.** { *; }
-
+-keep class com.unity3d.ads.** { *; }
+-keep class com.unity3d.services.** { *; }
+-dontwarn com.unity3d.ads.**
+-dontwarn com.unity3d.services.**
 # ============================================================
 # Flutter Local Notifications
 # ============================================================

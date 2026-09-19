@@ -7,9 +7,6 @@
         android:label="Quizs"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-2673210126301403~6274004500" />
         <!-- Icon shown for FCM notifications while the app is backgrounded
              or terminated; falls back to the launcher icon without this. -->
         <meta-data

@@ -95,22 +95,19 @@ Quizs ("we", "us", "our") is a bilingual (English & Hindi) educational trivia an
 • Device & Hardware Telemetry: Device model, manufacturer, OS version, screen metrics, language/locale, and time zone.
 • Push Notification Identifiers: Firebase Cloud Messaging (FCM) device registration tokens.
 • Diagnostics & Crash Reporting: Anonymous stack traces, crash logs, and memory state via Firebase Crashlytics.
-• Advertising Identifiers: Google Advertising ID (GAID on Android) and IDFA (on iOS, where authorized), IP address, and interaction metrics.
 
 2. PURPOSES OF PROCESSING
 • Delivering interactive quiz gameplay, real-time scoring, bilingual translations, and comprehensive explanations.
 • Maintaining player level progression, attendance check-in streaks, and public leaderboard rankings.
 • Sending opt-in notifications for daily study reminders, streak freeze alerts, and new educational topics.
-• Showing non-personalized and personalized in-app ads (banner, interstitial, rewarded) through Google Mobile Ads (AdMob) to sustain free access.
 • Diagnosing crashes, patching software bugs, and protecting platform security against bots, cheating, and unauthorized API tampering.
 
-3. ADVERTISING & GOOGLE ADMOB
-Quizs integrates the official Google Mobile Ads SDK (AdMob). We display banner slots, interstitial ads between quizzes, and optional rewarded video ads. For users in the EEA and UK, Google UMP CMP consent dialogs are implemented. You can reset or delete your Advertising ID in Android Settings > Google > Ads, or via iOS Settings > Privacy & Security > Tracking.
+3. AD-FREE PLATFORM
+Quizs is a completely ad-free educational application. We do not display banner ads, interstitial pop-ups, or rewarded video advertisements, and we do not collect, track, or share advertising identifiers (such as GAID or IDFA).
 
 4. THIRD-PARTY SUBPROCESSORS
 We partner only with vetted industry leaders under strict Data Processing Agreements:
 • Google Firebase (Authentication, FCM push notifications, Crashlytics).
-• Google Mobile Ads / AdMob (Monetization & ad delivery).
 • Cloud Hosting & Database Infrastructure (Encrypted at rest with AES-256).
 
 5. DATA RETENTION & SECURITY
@@ -124,7 +121,7 @@ Go to Profile > Edit Profile > Tap "Delete Account" > Confirm Deletion.
 All user records, quiz history, streak progress, and authentication tokens are immediately and permanently eradicated from our databases. You can also email quizsappliaction@gmail.com.
 
 7. YOUR GLOBAL RIGHTS (GDPR / CCPA / DPDPA)
-You have the right to access, rectify, restrict, export, or erase your personal data, and to opt-out of behavioral ad tracking.
+You have the right to access, rectify, restrict, export, or erase your personal data.
 
 8. CHILDREN'S PRIVACY
 Quizs is intended for a general audience aged 13+. We do not knowingly collect personal data from children under 13.
@@ -161,9 +158,8 @@ Quizs strictly enforces fair play on all competitive leaderboards:
 • All question databases, translations, illustrations, brand trademarks, sound effects, and software code are the exclusive intellectual property of Arknox.
 • You are granted a limited, personal, non-commercial, revocable license to use the app on personal devices. Reverse engineering or scraping is strictly prohibited.
 
-6. IN-APP ADVERTISING (ADMOB)
-• Quizs is supported by programmatic advertising served by Google Mobile Ads (AdMob). We do not endorse third-party products advertised in the app.
-• Your interactions and transactions with third-party advertisers are solely between you and that third party.
+6. AD-FREE ENVIRONMENT
+• Quizs is dedicated to an uninterrupted educational experience and is completely ad-free. The application does not serve commercial advertisements or collect advertising IDs.
 
 7. TERMINATION & IN-APP DELETION
 • You may terminate your account at any time via Profile > Edit Profile > Delete Account.

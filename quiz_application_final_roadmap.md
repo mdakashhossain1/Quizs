@@ -470,39 +470,31 @@ They must not be treated as the same percentage.
 
 # 9. Profile Quiz Statistics
 
-The existing Profile cards such as **Quiz Played, Right, Wrong, This Month** must be connected to backend data.
+The existing Profile cards such as **Quiz Played, Right, Wrong, This Month** are connected directly to real backend attempt data ([`ProfileStatsService.php`](file:///c:/xampp_8.2/htdocs/Quizs/admin/app/Services/ProfileStatsService.php)).
+
+All daily and monthly boundaries are calculated using the business timezone: **`Asia/Kolkata` (GMT+05:30 / India Standard Time)**.
 
 ## 9.1 Quiz Played
-
-Show the total number of successfully completed quiz attempts by the logged-in user according to the application's counting rule.
+Show the total number of successfully completed quiz sets/attempts by the logged-in user **today** (within the current day in `Asia/Kolkata`).
 
 ## 9.2 Right
-
-Show the total number of correct answers from the user's counted quiz attempts.
+Show the total number of correct answers submitted by the user from completed quizzes **today** (within the current day in `Asia/Kolkata`).
 
 ## 9.3 Wrong
+Show the total number of wrong answers submitted by the user from completed quizzes **today** (within the current day in `Asia/Kolkata`).
 
-Show the total number of wrong answers from the user's counted quiz attempts.
-
-## 9.4 This Month
-
-Show the number of successfully completed quizzes by the user during the current calendar month.
-
-The backend must calculate the month using the application's configured business timezone/date boundaries consistently.
+## 9.4 This Month (Questions Answered)
+Show the **total number of questions answered** by the user across all completed quiz sets during the current calendar month (in `Asia/Kolkata`).
+- *Note on calculation*: Instead of counting quiz attempts as `1`, it accumulates all questions answered within those completed quizzes (e.g., completing two sets of 25 questions displays `50` questions answered this month).
 
 ## 9.5 Single Source of Truth
-
-These values must come from the same attempt/question records used by the Admin Panel.
+These values come from the same attempt/question records used by the Admin Panel (`quiz_attempts` and `quiz_attempt_answers`).
 
 Do not maintain unrelated frontend counters.
 
 Therefore:
-
-`Profile Stats = Backend Quiz Attempt Data`
-
-and
-
-`Admin Stats = Same Backend Quiz Attempt Data`
+- `Profile Stats = Backend Quiz Attempt Data (Daily Breakdown + Monthly Questions)`
+- `Admin Stats = Same Backend Quiz Attempt Data`
 
 ---
 
@@ -534,38 +526,27 @@ If total attempt count is needed later, expose it as a separate metric instead o
 
 ---
 
-# 11. Quiz Card Progress Bar
+# 11. Quiz Card Progress Bar (Daily 24-Hour User Progress)
 
-The progress bar below each quiz should also use real backend data.
+The progress bar below each quiz card (in both Choose Category browse view and inside any Category view) represents **the logged-in user's questions answered for that specific quiz TODAY (within a 24-hour daily window)**.
 
 ## 11.1 Progress Meaning
-
-For the agreed design, the progress bar represents **quiz completion rate among unique users who started that quiz**.
+Instead of displaying a global community average, the progress bar is personalized to the active user:
+- It tracks how many questions the user has answered today for that quiz out of the total questions in the quiz.
+- If the user has completed the quiz today, the progress bar is **100% (Full)**.
+- If the user answered 10 out of 20 questions today, the progress bar is **50%**.
+- If the user has not answered any questions for this quiz today, the progress bar starts at **0%**.
 
 Formula:
+`Daily User Progress % = (Questions Answered Today by User / Total Questions in Quiz) * 100`
 
-`Completion Rate = Unique Users Who Completed Quiz / Unique Users Who Started Quiz * 100`
+## 11.2 Automatic 24-Hour Reset
+- All progress data operates on a daily boundary (`Asia/Kolkata` midnight reset).
+- When a new day begins, past progress is automatically reset to 0% for the new day without requiring static stored progress flags.
+- Division-by-zero is strictly prevented (empty quiz returns 0.0%).
 
-Example:
-
-- 100 unique users started
-- 75 unique users completed
-
-Progress Bar = 75%
-
-## 11.2 Edge Cases
-
-If nobody has started the quiz:
-
-`Completion Rate = 0%`
-
-The backend should prevent division-by-zero errors.
-
-Multiple attempts by the same user should not artificially inflate the unique-user completion rate.
-
-## 11.3 Real-Time / Near-Real-Time Update
-
-As users start and complete quizzes, the backend statistics should update and the frontend should fetch/refresh the latest value.
+## 11.3 Real-Time Refresh
+- When the user finishes a quiz or plays questions and returns to the Category or Trending Quizzes screen, the screen immediately refetches the latest question progress from `/categories/{id}/quizzes`, dynamically reflecting their updated progress bar.
 
 "Real-time" does not require continuously querying the database every second. The implementation may use API refresh, event-based updates, WebSocket/realtime infrastructure, or another efficient approach depending on the existing stack.
 

@@ -29,7 +29,7 @@ return [
     |
     */
 
-    'business_timezone' => env('BUSINESS_TIMEZONE', config('app.timezone', 'UTC')),
+    'business_timezone' => env('BUSINESS_TIMEZONE', env('APP_TIMEZONE', 'Asia/Kolkata')),
 
     /*
     |--------------------------------------------------------------------------

@@ -10,6 +10,7 @@ use App\Services\ProfileStatsService;
 use App\Services\TargetService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -22,7 +23,34 @@ class UserController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = User::withCount('quizAttempts');
+        $businessNow = Carbon::now(config('quiz.business_timezone'));
+        $todayDate = $businessNow->toDateString();
+        $currentYear = $businessNow->year;
+        $currentMonth = $businessNow->month;
+
+        $query = User::withCount([
+            'quizAttempts',
+            'quizAttempts as today_completed_quizzes_count' => function ($q) use ($todayDate) {
+                $q->where('status', 'completed')->whereDate('completed_at', $todayDate);
+            },
+        ])
+        ->withSum([
+            'quizAttempts as today_right_sum' => function ($q) use ($todayDate) {
+                $q->where('status', 'completed')->whereDate('completed_at', $todayDate);
+            },
+        ], 'correct_answers')
+        ->withSum([
+            'quizAttempts as today_wrong_sum' => function ($q) use ($todayDate) {
+                $q->where('status', 'completed')->whereDate('completed_at', $todayDate);
+            },
+        ], 'wrong_answers')
+        ->withSum([
+            'quizAttempts as this_month_questions_sum' => function ($q) use ($currentYear, $currentMonth) {
+                $q->where('status', 'completed')
+                  ->whereYear('completed_at', $currentYear)
+                  ->whereMonth('completed_at', $currentMonth);
+            },
+        ], 'attempted_questions');
 
         if ($request->filled('role')) {
             $query->where('role', $request->role);
@@ -151,7 +179,15 @@ class UserController extends Controller
         // §9.5, §14).
         $stats = ProfileStatsService::compute($user);
 
-        return view('admin.users.activity', compact('user', 'sessions', 'stats'));
+        // Recent completed quiz attempts (summary only: quiz title, category, correct/wrong, score, accuracy)
+        $recentAttempts = $user->quizAttempts()
+            ->with(['quiz.category'])
+            ->where('status', 'completed')
+            ->latest('completed_at')
+            ->take(10)
+            ->get();
+
+        return view('admin.users.activity', compact('user', 'sessions', 'stats', 'recentAttempts'));
     }
 
     /**

@@ -61,7 +61,8 @@ class QuizApiController extends Controller
         // Roadmap §10-11: real unique-user played count and completion
         // rate, not the fabricated per-title numbers the client used to
         // synthesize.
-        QuizStatsService::attachToQuizzes($quizzes);
+        $user = auth('sanctum')->user() ?? $request->user();
+        QuizStatsService::attachToQuizzes($quizzes, $user);
 
         return response()->json([
             'success' => true,
@@ -94,7 +95,8 @@ class QuizApiController extends Controller
         $lang = $request->query('lang', $request->query('language', 'en'));
         $this->localizeQuiz($quiz, $lang);
 
-        $stats = QuizStatsService::statsFor($quiz->id);
+        $user = auth('sanctum')->user() ?? $request->user();
+        $stats = QuizStatsService::statsFor($quiz->id, $user);
         $quiz->played_count = $stats['played_count'];
         $quiz->completion_rate = $stats['completion_rate'];
 

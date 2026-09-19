@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../ads/banner_ad_slot.dart';
 import '../l10n/app_strings.dart';
 import '../models/question_model.dart';
 import '../services/quiz_api_service.dart';
 import 'marquee_text.dart';
+import 'unity_banner_slot.dart';
 
 abstract final class QuizColors {
   static const purple = Color(0xFF53009C);
@@ -130,7 +130,7 @@ class DesignCanvas extends StatelessWidget {
                 if (adBefore != null) {
                   bannerTop = math.min(
                     bannerTop,
-                    adBefore! * scale - BannerAdSlot.height - 12,
+                    adBefore! * scale - UnityBannerSlot.height - 12,
                   );
                 }
                 final virtualCanvasHeight = math.max(
@@ -139,7 +139,7 @@ class DesignCanvas extends StatelessWidget {
                 );
                 final contentHeight = math.max(
                   virtualCanvasHeight * scale,
-                  bannerTop + BannerAdSlot.height + (bottomNav != null ? (96.0 * scale) : 20.0),
+                  bannerTop + UnityBannerSlot.height + (bottomNav != null ? (96.0 * scale) : 20.0),
                 );
                 final canvasHeight = math.max(contentHeight, viewportHeight);
 
@@ -185,8 +185,8 @@ class DesignCanvas extends StatelessWidget {
                                         left: 0,
                                         right: 0,
                                         top: bannerTop,
-                                        height: BannerAdSlot.height,
-                                        child: BannerAdSlot(
+                                        height: UnityBannerSlot.height,
+                                        child: UnityBannerSlot(
                                           isDark: darkBanner ??
                                               (color == QuizColors.darkPurple ||
                                                   topColor ==

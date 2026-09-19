@@ -2,73 +2,125 @@
 
 namespace App\Services;
 
+use App\Models\Quiz;
 use App\Models\QuizAttempt;
+use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Quiz-card statistics (roadmap §10-11). Computed in one batched query per
- * metric regardless of how many quiz ids are asked for, so rendering a list
- * of quiz cards doesn't run N+1 queries.
+ * Quiz-card statistics.
+ *
+ * Played count = unique users who successfully completed this quiz (lifetime).
+ * Completion rate (Progress Bar) = percentage of questions answered by the
+ * logged-in user TODAY (within the 24-hour daily window in Asia/Kolkata).
+ * Automatically resets each day.
  */
 class QuizStatsService
 {
     /**
      * @param  iterable<int>  $quizIds
-     * @return array<int, array{played_count: int, completion_rate: float}>
+     * @param  User|null  $user
+     * @return array<int, array{played_count: int, completion_rate: float, today_answered: int, total_questions: int}>
      */
-    public static function statsForMany(iterable $quizIds): array
+    public static function statsForMany(iterable $quizIds, ?User $user = null): array
     {
         $ids = collect($quizIds)->unique()->values();
         if ($ids->isEmpty()) {
             return [];
         }
 
-        // "Started" = any attempt at all (in_progress or completed) —
-        // Phase 4 always creates the attempt row the moment a quiz opens.
-        $started = QuizAttempt::whereIn('quiz_id', $ids)
-            ->select('quiz_id', DB::raw('COUNT(DISTINCT user_id) as unique_users'))
-            ->groupBy('quiz_id')
-            ->pluck('unique_users', 'quiz_id');
-
-        // "Played" (roadmap §10.1) = unique users who successfully completed.
+        // "Played" = unique users who successfully completed this quiz.
         $completed = QuizAttempt::whereIn('quiz_id', $ids)
             ->where('status', 'completed')
             ->select('quiz_id', DB::raw('COUNT(DISTINCT user_id) as unique_users'))
             ->groupBy('quiz_id')
             ->pluck('unique_users', 'quiz_id');
 
-        return $ids->mapWithKeys(function (int $id) use ($started, $completed) {
-            $startedCount = (int) ($started[$id] ?? 0);
+        $businessNow = Carbon::now(config('quiz.business_timezone'));
+        $today = $businessNow->toDateString();
+
+        // Get total question count for each quiz
+        $quizzes = Quiz::whereIn('id', $ids)->withCount('questions')->get()->keyBy('id');
+
+        // Fetch logged-in user's quiz attempts today for these quizzes (24-hour daily window)
+        $userAttemptsToday = collect();
+        if ($user) {
+            $userAttemptsToday = QuizAttempt::where('user_id', $user->id)
+                ->whereIn('quiz_id', $ids)
+                ->where(function ($q) use ($today) {
+                    $q->whereDate('completed_at', $today)
+                      ->orWhere(function ($q2) use ($today) {
+                          $q2->where('status', 'in_progress')->whereDate('started_at', $today);
+                      });
+                })
+                ->withCount('answers')
+                ->get()
+                ->groupBy('quiz_id');
+        }
+
+        return $ids->mapWithKeys(function (int $id) use ($completed, $quizzes, $user, $userAttemptsToday) {
             $completedCount = (int) ($completed[$id] ?? 0);
+            $totalQuestions = (int) ($quizzes[$id]->questions_count ?? 0);
+
+            $todayAnswered = 0;
+            if ($user && isset($userAttemptsToday[$id])) {
+                foreach ($userAttemptsToday[$id] as $attempt) {
+                    if ($attempt->status === 'completed') {
+                        $count = $totalQuestions > 0 ? $totalQuestions : max((int) $attempt->attempted_questions, $attempt->answers_count);
+                    } else {
+                        $count = max((int) $attempt->attempted_questions, $attempt->answers_count);
+                    }
+                    if ($count > $todayAnswered) {
+                        $todayAnswered = $count;
+                    }
+                }
+            }
+
+            // Daily questions-answered progress percentage (0.0% to 100.0%)
+            $progressRate = $totalQuestions > 0
+                ? round((min($todayAnswered, $totalQuestions) / $totalQuestions) * 100, 1)
+                : ($todayAnswered > 0 ? 100.0 : 0.0);
 
             return [$id => [
                 'played_count' => $completedCount,
-                // Roadmap §11.2: no division by zero, nobody started -> 0%.
-                'completion_rate' => $startedCount > 0
-                    ? round(($completedCount / $startedCount) * 100, 1)
-                    : 0.0,
+                'completion_rate' => $progressRate,
+                'today_answered' => $todayAnswered,
+                'total_questions' => $totalQuestions,
             ]];
         })->all();
     }
 
-    public static function statsFor(int $quizId): array
+    public static function statsFor(int $quizId, ?User $user = null): array
     {
-        return self::statsForMany([$quizId])[$quizId] ?? ['played_count' => 0, 'completion_rate' => 0.0];
+        return self::statsForMany([$quizId], $user)[$quizId] ?? [
+            'played_count' => 0,
+            'completion_rate' => 0.0,
+            'today_answered' => 0,
+            'total_questions' => 0,
+        ];
     }
 
     /**
-     * Attaches played_count/completion_rate to each quiz in the collection.
+     * Attaches played_count and daily completion_rate to each quiz in the collection.
      * @param  Collection  $quizzes
+     * @param  User|null  $user
      */
-    public static function attachToQuizzes(Collection $quizzes): Collection
+    public static function attachToQuizzes(Collection $quizzes, ?User $user = null): Collection
     {
-        $stats = self::statsForMany($quizzes->pluck('id'));
+        $stats = self::statsForMany($quizzes->pluck('id'), $user);
 
         return $quizzes->each(function ($quiz) use ($stats) {
-            $quizStats = $stats[$quiz->id] ?? ['played_count' => 0, 'completion_rate' => 0.0];
+            $quizStats = $stats[$quiz->id] ?? [
+                'played_count' => 0,
+                'completion_rate' => 0.0,
+                'today_answered' => 0,
+                'total_questions' => 0,
+            ];
             $quiz->played_count = $quizStats['played_count'];
             $quiz->completion_rate = $quizStats['completion_rate'];
+            $quiz->today_answered = $quizStats['today_answered'];
         });
     }
 }

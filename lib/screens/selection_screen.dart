@@ -338,11 +338,14 @@ class _SelectionScreenState extends State<SelectionScreen> {
                           ? _trendingTopics[i].progress
                           : (0.3 + i * 0.15),
                       onTap: i < _trendingTopics.length
-                          ? () => Navigator.pushNamed(
+                          ? () async {
+                              await Navigator.pushNamed(
                                 context,
                                 '/question',
                                 arguments: _trendingTopics[i],
-                              )
+                              );
+                              if (mounted) _load();
+                            }
                           : null,
                     ),
             ),
@@ -391,11 +394,14 @@ class _SelectionScreenState extends State<SelectionScreen> {
                           ? _topics[i].progress
                           : (0.3 + i * 0.15),
                       onTap: i < _topics.length
-                          ? () => Navigator.pushNamed(
+                          ? () async {
+                              await Navigator.pushNamed(
                                 context,
                                 '/question',
                                 arguments: _topics[i],
-                              )
+                              );
+                              if (mounted) _load();
+                            }
                           : null,
                     ),
             ),

@@ -13,7 +13,7 @@
     <li><a href="#sec8">8. Virtual Economy: Coins &amp; XP</a></li>
     <li><a href="#sec9">9. Attendance &amp; Daily Streaks</a></li>
     <li><a href="#sec10">10. Leaderboards &amp; Rankings</a></li>
-    <li><a href="#sec11">11. In-App Advertisements (AdMob)</a></li>
+    <li><a href="#sec11">11. Ad-Free Experience</a></li>
     <li><a href="#sec12">12. User Conduct &amp; Prohibited Acts</a></li>
     <li><a href="#sec13">13. User Avatars &amp; Uploaded Media</a></li>
     <li><a href="#sec14">14. Service Availability &amp; Updates</a></li>
@@ -246,15 +246,10 @@
 </section>
 
 <section id="sec11">
-    <h2><span class="sec-num">11.</span> In-App Advertisements &amp; Third-Party Promotions (AdMob)</h2>
+    <h2><span class="sec-num">11.</span> Ad-Free Experience &amp; Third-Party Content</h2>
     <p>
-        To keep Quizs completely free of mandatory subscription fees, the Application integrates advertisements served by the <strong>Google Mobile Ads SDK (AdMob)</strong>:
+        Quizs is dedicated to providing an uninterrupted educational environment and is operated as a completely ad-free application. The Application does not integrate Google AdMob or third-party advertising SDKs, does not display banner, interstitial, or rewarded commercial advertisements, and does not track or distribute user advertising identifiers.
     </p>
-    <ul>
-        <li><strong>Ad Formats:</strong> You will encounter banner advertisements, full-screen interstitial ads between quiz modules, and optional rewarded video ads.</li>
-        <li><strong>Third-Party Content Disclaimer:</strong> Advertisements presented within the App are programmatic and delivered by Google's advertising network. Quizs does not endorse, sponsor, recommend, or guarantee the authenticity, legality, safety, or quality of any third-party products, services, games, or websites promoted in such advertisements.</li>
-        <li><strong>Independent Dealings:</strong> Any correspondence, purchase, or interaction you undertake with an external advertiser encountered through our App is solely between you and that third party. Quizs shall not be held responsible or liable for any loss, damage, financial transaction, or dispute arising from your dealings with third-party advertisers.</li>
-    </ul>
 </section>
 
 <section id="sec12">

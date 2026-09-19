@@ -3,12 +3,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../ads/test_ads.dart';
 import '../l10n/app_strings.dart';
 import '../models/question_model.dart';
 import '../models/quiz_ranking_model.dart';
 import '../services/quiz_api_service.dart';
 import '../services/sound_service.dart';
+import '../services/unity_ads_service.dart';
 import '../widgets/design_widgets.dart';
 import 'results_screen.dart';
 
@@ -226,7 +226,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
 
     _answeredInSessionCount++;
     if (_answeredInSessionCount % 2 == 0) {
-      TestAds.showInterstitialAd(
+      UnityAdsService.instance.showInterstitialAd(
         onComplete: () {
           if (!mounted) return;
           _proceedToNextOrFinish();
