@@ -67,12 +67,17 @@
     </div>
 </div>
 
-{{-- Question-by-question breakdown --}}
-<div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-    <div class="px-4 py-3 border-b border-gray-100">
-        <h3 class="font-semibold text-gray-900 text-sm">Question Breakdown</h3>
-        <p class="text-xs text-gray-400">Selected answer vs. correct answer for every question</p>
-    </div>
+{{-- Question-by-question breakdown (collapsible so admin is not overwhelmed with 30+ question dump) --}}
+<details class="bg-white border border-gray-200 rounded-lg overflow-hidden group">
+    <summary class="px-4 py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 flex items-center justify-between transition-colors">
+        <div>
+            <h3 class="font-semibold text-gray-900 text-sm inline">Detailed Questions List</h3>
+            <span class="text-xs text-gray-400 ml-2">({{ count($quizAttempt->quiz->questions ?? []) }} questions — click to expand/collapse)</span>
+        </div>
+        <span class="text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-2.5 py-1 rounded">
+            Toggle Questions
+        </span>
+    </summary>
     <div class="divide-y divide-gray-100">
         @forelse($quizAttempt->quiz->questions ?? [] as $i => $question)
             @php
@@ -104,6 +109,6 @@
             <div class="px-4 py-10 text-center text-gray-400">This quiz has no questions.</div>
         @endforelse
     </div>
-</div>
+</details>
 
 @endsection

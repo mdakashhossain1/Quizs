@@ -64,20 +64,84 @@
     <div class="bg-white border border-gray-200 rounded-lg p-4">
         <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Quiz Played</p>
         <p class="text-lg font-bold text-gray-900">{{ $stats['quiz_played'] }}</p>
+        <p class="text-xs text-gray-400">Completed today</p>
     </div>
     <div class="bg-white border border-gray-200 rounded-lg p-4">
         <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Right</p>
         <p class="text-lg font-bold text-green-700">{{ $stats['right'] }}</p>
+        <p class="text-xs text-gray-400">Correct today</p>
     </div>
     <div class="bg-white border border-gray-200 rounded-lg p-4">
         <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Wrong</p>
         <p class="text-lg font-bold text-red-700">{{ $stats['wrong'] }}</p>
+        <p class="text-xs text-gray-400">Wrong today</p>
     </div>
     <div class="bg-white border border-gray-200 rounded-lg p-4">
         <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">This Month</p>
-        <p class="text-lg font-bold text-gray-900">{{ $stats['this_month'] }}</p>
+        <p class="text-lg font-bold text-purple-700">{{ $stats['this_month'] }}</p>
+        <p class="text-xs text-gray-400">Questions answered</p>
     </div>
 </div>
+
+{{-- Recent completed quiz attempts summary (clean performance overview without questions dump) --}}
+@if(isset($recentAttempts) && $recentAttempts->isNotEmpty())
+<div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-6">
+    <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div>
+            <h3 class="font-semibold text-gray-900 text-sm">Recent Completed Quizzes</h3>
+            <p class="text-xs text-gray-400">Per-quiz question count, right / wrong, score and accuracy</p>
+        </div>
+        <a href="{{ route('admin.quiz-attempts.index', ['user' => $user->email]) }}" class="text-xs text-blue-600 hover:underline font-medium">
+            View all attempts &rarr;
+        </a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Quiz</th>
+                    <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Category</th>
+                    <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Questions Answered</th>
+                    <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Right / Wrong</th>
+                    <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Score</th>
+                    <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Accuracy</th>
+                    <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Completed</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @foreach($recentAttempts as $attempt)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 font-semibold text-gray-900">{{ $attempt->quiz->title ?? 'Deleted Quiz' }}</td>
+                        <td class="px-4 py-3 text-gray-600 text-xs">{{ $attempt->quiz->category->name ?? 'General' }}</td>
+                        <td class="px-4 py-3 text-xs text-gray-700">
+                            {{ $attempt->attempted_questions ?: ($attempt->correct_answers + $attempt->wrong_answers) }} / {{ $attempt->total_questions }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-xs">
+                            <span class="inline-flex items-center gap-0.5 font-semibold text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded">
+                                ✓ {{ $attempt->correct_answers }}
+                            </span>
+                            <span class="inline-flex items-center gap-0.5 font-semibold text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">
+                                ✗ {{ $attempt->wrong_answers }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">+{{ $attempt->score }} pts</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded {{ ($attempt->accuracy ?? 0) >= 60 ? 'text-green-700 bg-green-50 border border-green-200' : 'text-red-700 bg-red-50 border border-red-200' }}">
+                                {{ number_format($attempt->accuracy ?? 0, 0) }}%
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-gray-400 text-xs">
+                            {{ $attempt->completed_at ? $attempt->completed_at->format('M j, Y g:i A') : '—' }}
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
 
 {{-- Session history --}}
 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">

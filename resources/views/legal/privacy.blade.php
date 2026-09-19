@@ -9,7 +9,7 @@
     <li><a href="#sec4">4. How Data is Collected</a></li>
     <li><a href="#sec5">5. Legal Bases for Processing</a></li>
     <li><a href="#sec6">6. Purposes of Data Processing</a></li>
-    <li><a href="#sec7">7. Advertising &amp; AdMob Policies</a></li>
+    <li><a href="#sec7">7. Ad-Free Policy</a></li>
     <li><a href="#sec8">8. Third-Party Subprocessors</a></li>
     <li><a href="#sec9">9. Push Notifications &amp; Alerts</a></li>
     <li><a href="#sec10">10. Device Permissions Explained</a></li>
@@ -218,64 +218,18 @@
         <li><strong>Community &amp; Social Motivation:</strong> Publishing real-time rank positions on the Daily, Weekly, and All-Time Leaderboard rosters. If you prefer anonymity, you may choose an abstract display pseudonym and default avatar.</li>
         <li><strong>Communications &amp; Service Notices:</strong> Transmitting necessary administrative notices regarding your account security, policy revisions, OTP verification codes for password resets, or responses to customer service inquiries initiated through support channels.</li>
         <li><strong>Push Notifications:</strong> Delivering opt-in reminders to encourage daily learning habits, prevent attendance streak loss, notify you of newly published quiz topics, or highlight periodic competitive tournaments.</li>
-        <li><strong>Monetization via Safe Advertising:</strong> Displaying contextual and programmatic banner, interstitial, and rewarded video ads through Google AdMob to fund server infrastructure, editorial question development, and software maintenance without requiring paywalls or mandatory paid subscriptions.</li>
         <li><strong>Platform Security &amp; Fair Play Enforcement:</strong> Monitoring API traffic patterns to block distributed denial of service (DDoS) threats, detect automated scripts, prevent decompiled client exploits, and ban accounts attempting to inject fraudulent scores onto leaderboards.</li>
     </ul>
 </section>
 
 <section id="sec7">
-    <h2><span class="sec-num">07.</span> In-App Advertising &amp; Google AdMob Policies</h2>
+    <h2><span class="sec-num">07.</span> Ad-Free Policy &amp; No Commercial Tracking</h2>
     <p>
-        Quizs provides high-quality educational quiz content completely free of mandatory subscription fees. To finance continuous content generation, hosting, translation, and engineering maintenance, our mobile application integrates the official <strong>Google Mobile Ads SDK (AdMob)</strong>.
-    </p>
-    <h3>7.1 Types of Advertisements Displayed</h3>
-    <ul>
-        <li><strong>Adaptive Banner Advertisements:</strong> Displayed at calculated anchor coordinates (such as the bottom of the Selection Screen, Dashboard, or Question Result pages) that scale dynamically to your screen width without obscuring gameplay buttons.</li>
-        <li><strong>Interstitial Advertisements:</strong> Full-screen static or rich media advertisements presented naturally during logical breaks in gameplay, specifically upon completing a quiz round or transitioning between major category sections. We never deploy unexpected interstitials that interrupt active, timed question sessions.</li>
-        <li><strong>Rewarded Video Advertisements:</strong> Optional video ads that users may voluntarily choose to watch in exchange for in-game benefits, such as reviving an expired quiz session, gaining an additional hint, or earning supplemental virtual coins.</li>
-    </ul>
-
-    <h3>7.2 Data Utilized by Google Mobile Ads</h3>
-    <p>
-        Google Mobile Ads may automatically collect and process certain telemetry to serve, measure, and protect against fraudulent ad clicks. This includes your device's Google Advertising ID (GAID) or IDFA, IP address, coarse geolocation derived from IP, device make and model, cellular carrier, and interaction metrics with the displayed creative.
+        Quizs is dedicated to delivering an uninterrupted, privacy-respecting educational trivia experience. The Application is operated as a completely ad-free platform.
     </p>
     <p>
-        Depending on your geographical region and consent choices:
+        We do not integrate the Google Mobile Ads SDK (AdMob) or any third-party ad network. We do not display banner advertisements, interstitial pop-ups, or rewarded video advertisements. Furthermore, Quizs does not collect, record, or transmit device advertising identifiers (such as Google Advertising ID / GAID on Android or IDFA on iOS) to ad technology vendors, data brokers, or behavioral tracking entities.
     </p>
-    <ul>
-        <li><strong>Personalized Ads:</strong> Delivered when you consent to behavioral targeting. Google utilizes your advertising ID and historical browsing/app usage signals to show ads aligned with your interests.</li>
-        <li><strong>Non-Personalized (Contextual) Ads:</strong> Delivered if you withhold or revoke consent. These ads rely purely on contextual signals (such as the current app category or general geographic country) and do not utilize your advertising ID for behavioral profile building.</li>
-    </ul>
-
-    <h3>7.3 User Controls, Opt-Outs &amp; Consent Management</h3>
-    <p>
-        In accordance with European Union ePrivacy and General Data Protection Regulations, Quizs implements the <strong>Google User Messaging Platform (UMP) SDK</strong> to present a certified Consent Management Platform (CMP) dialog to users in the European Economic Area (EEA), United Kingdom, and Switzerland. You retain total autonomy to accept, reject, or customize ad tracking choices at any time.
-    </p>
-    <p>
-        Additionally, you can control advertising identifiers directly at the operating system level:
-    </p>
-    <ul>
-        <li><strong>Android Devices:</strong> Navigate to <em>Settings &gt; Google &gt; Ads &gt; Reset advertising ID</em> or <em>Delete advertising ID</em>. You may also toggle "Opt out of Ads Personalization" on older Android builds.</li>
-        <li><strong>Apple iOS Devices:</strong> Navigate to <em>Settings &gt; Privacy &amp; Security &gt; Tracking</em> and toggle off "Allow Apps to Request to Track", or control app-specific permissions for Quizs.</li>
-        <li><strong>Google Account Web Controls:</strong> Manage your cross-platform ad personalization settings at <a href="https://adssettings.google.com" target="_blank" rel="noopener">https://adssettings.google.com</a>.</li>
-    </ul>
-
-    <h3>7.4 IAB Europe Transparency and Consent Framework (TCF v2.2) Compliance</h3>
-    <p>
-        For users residing within the European Economic Area (EEA), United Kingdom, and Switzerland, Quizs participates in and strictly conforms with the rules and specifications of the <strong>IAB Europe Transparency and Consent Framework (TCF v2.2)</strong> and Google's certified Consent Management Platform (CMP) mandates.
-    </p>
-    <p>
-        When you first initialize the application from within a covered European jurisdiction, our integrated Google User Messaging Platform (UMP) SDK interacts with your handset to present a localized consent configuration screen. This interface allows you to:
-    </p>
-    <ul>
-        <li>Grant or deny consent for specific standardized TCF purposes (including Purpose 1: Store and/or access information on a device; Purpose 2: Use limited data to select advertising; Purpose 3: Create profiles for personalised advertising; Purpose 4: Use profiles to select personalised advertising; and Purpose 7: Measure advertising performance).</li>
-        <li>Inspect the comprehensive roster of third-party ad technology vendors (ATVs) and mediation partners participating in Google AdMob programmatic bidding auctions.</li>
-        <li>Review each vendor's stated legal basis (Consent versus Legitimate Interest) and exercise granular opt-outs or objections on a vendor-by-vendor basis.</li>
-    </ul>
-    <p>
-        Your selected consent signals are cryptographically encoded into a standardized Transparency and Consent String (TC String) and stored in client-side persistence as mandated by IAB TCF specifications. This encoded string is automatically read by Google Mobile Ads SDK and passed downstream to advertising exchanges. You can revisit and modify your consent preferences at any time by navigating to <em>Profile &gt; Privacy &gt; Ad Consent Settings</em>.
-    </p>
-
 </section>
 
 <section id="sec8">
@@ -311,12 +265,6 @@
                     <td>Real-time crash reporting, unhandled exception telemetry, stability tracking</td>
                     <td>Stack traces, device hardware specs, OS version, app build number</td>
                     <td>United States / Pseudonymized data, 90-day retention</td>
-                </tr>
-                <tr>
-                    <td><strong>Google Mobile Ads (AdMob)</strong></td>
-                    <td>In-app banner, interstitial, and rewarded ad monetization</td>
-                    <td>Advertising ID (GAID/IDFA), IP address, device specs, ad interaction data</td>
-                    <td>Global / Subject to Google Privacy Policy &amp; IAB TCF 2.2 Framework</td>
                 </tr>
                 <tr>
                     <td><strong>Cloud Hosting &amp; CDN Infrastructure</strong></td>
