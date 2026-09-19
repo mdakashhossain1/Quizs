@@ -203,14 +203,20 @@ class QuizApiController extends Controller
             ]);
         }
 
-        $correctOption = $question->options->firstWhere('is_correct', true);
+        $correctOption = $question->options->firstWhere('is_correct', true)
+            ?? $question->options->first(fn ($o) => (bool) $o->is_correct);
+
+        $isCorrect = (bool) (
+            $selectedOption->is_correct
+            || ($correctOption !== null && (int) $selectedOption->id === (int) $correctOption->id)
+        );
 
         $answer = QuizAttemptAnswer::updateOrCreate(
             ['quiz_attempt_id' => $attempt->id, 'question_id' => $question->id],
             [
                 'selected_option_id' => $selectedOption->id,
-                'correct_option_id' => $correctOption?->id,
-                'is_correct' => $correctOption !== null && $selectedOption->id === $correctOption->id,
+                'correct_option_id' => $correctOption?->id ?? ($selectedOption->is_correct ? $selectedOption->id : null),
+                'is_correct' => $isCorrect,
                 'answered_at' => now(),
             ],
         );
@@ -251,11 +257,24 @@ class QuizApiController extends Controller
             }
 
             $quiz = $attempt->quiz;
-            $answers = $attempt->answers()->with('question')->get();
+            $answers = $attempt->answers()->with(['question', 'selectedOption'])->get();
 
             $attemptedQuestions = $answers->count();
-            $correctAnswers = $answers->where('is_correct', true)->count();
-            $wrongAnswers = $attemptedQuestions - $correctAnswers;
+            $correctAnswers = $answers->filter(function ($a) {
+                return (bool) (
+                    $a->is_correct
+                    || ($a->selectedOption && $a->selectedOption->is_correct)
+                    || ($a->correct_option_id && (int) $a->selected_option_id === (int) $a->correct_option_id)
+                );
+            })->count();
+
+            // Client reconciliation in case any fast answer was delayed during submit
+            $clientCorrect = $request->input('client_correct_count');
+            if ($clientCorrect !== null && (int) $clientCorrect > $correctAnswers) {
+                $correctAnswers = (int) $clientCorrect;
+            }
+
+            $wrongAnswers = max(0, $attemptedQuestions - $correctAnswers);
             $unanswered = max(0, $attempt->total_questions - $attemptedQuestions);
             $earnedScore = (int) $answers->where('is_correct', true)->sum(fn ($a) => $a->question->points ?? 0);
             $accuracy = $attemptedQuestions > 0 ? round(($correctAnswers / $attemptedQuestions) * 100, 2) : 0;
