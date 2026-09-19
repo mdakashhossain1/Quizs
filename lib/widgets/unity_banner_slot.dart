@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -23,6 +24,39 @@ class UnityBannerSlot extends StatefulWidget {
 
 class _UnityBannerSlotState extends State<UnityBannerSlot> {
   bool _failed = false;
+  String? _lastError;
+  String _activePlacement = UnityAdsService.bannerPlacementId;
+  Timer? _retryTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    UnityAdsService.instance.addListener(_onServiceUpdate);
+  }
+
+  @override
+  void dispose() {
+    UnityAdsService.instance.removeListener(_onServiceUpdate);
+    _retryTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onServiceUpdate() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _retryBanner() {
+    _retryTimer?.cancel();
+    if (mounted) {
+      setState(() {
+        _failed = false;
+        _lastError = null;
+        _activePlacement = UnityAdsService.bannerPlacementId;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,37 +86,135 @@ class _UnityBannerSlotState extends State<UnityBannerSlot> {
 
     Widget adContent;
     final inTest = !kIsWeb && Platform.environment.containsKey('FLUTTER_TEST');
-    if (!UnityAdsService.instance.isSupported || !UnityAdsService.instance.isInitialized || inTest) {
-      // In tests, non-Android, or before initialization
+    final service = UnityAdsService.instance;
+
+    if (!service.isSupported || inTest) {
       adContent = Container(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFF2F2F7),
         alignment: Alignment.center,
-        child: const Text(
+        child: Text(
           'Unity Ads (Android only)',
-          style: TextStyle(fontSize: 10, color: Color(0xFF777777)),
+          style: TextStyle(
+            fontSize: 10,
+            color: isDark ? const Color(0xFFAAAAAA) : const Color(0xFF777777),
+          ),
         ),
       );
+    } else if (!service.isInitialized) {
+      if (service.initFailed) {
+        adContent = Container(
+          color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFF2F2F7),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Unity Init: ${service.lastError ?? "Failed"}',
+                style: TextStyle(
+                  fontSize: 9,
+                  color: isDark ? Colors.redAccent : Colors.red,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              InkWell(
+                onTap: () => service.initialize(),
+                child: const Text(
+                  'Tap to retry init',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        );
+      } else {
+        adContent = Container(
+          color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFF2F2F7),
+          alignment: Alignment.center,
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: isDark ? Colors.white54 : Colors.grey,
+            ),
+          ),
+        );
+      }
     } else if (_failed) {
       adContent = Container(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFF2F2F7),
         alignment: Alignment.center,
-        child: TextButton(
-          onPressed: () => setState(() => _failed = false),
-          child: const Text(
-            'Ad unavailable. Tap to retry',
-            style: TextStyle(fontSize: 10),
-          ),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              _lastError != null ? 'Ad: $_lastError' : 'Ad unavailable',
+              style: TextStyle(
+                fontSize: 9,
+                color: isDark ? Colors.white70 : const Color(0xFF555555),
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            InkWell(
+              onTap: _retryBanner,
+              child: Text(
+                'Tap to retry',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
         ),
       );
     } else {
       adContent = UnityBannerAd(
-        placementId: UnityAdsService.bannerPlacementId,
+        placementId: _activePlacement,
         onLoad: (placementId) {
-          debugPrint('Unity Banner loaded: $placementId');
+          debugPrint('Unity Banner loaded successfully: $placementId');
+          if (_failed && mounted) {
+            setState(() {
+              _failed = false;
+              _lastError = null;
+            });
+          }
         },
         onFailed: (placementId, error, message) {
           debugPrint('Unity Banner failed: $placementId - $error: $message');
-          if (mounted) setState(() => _failed = true);
+          if (mounted) {
+            // If primary Banner_Android failed, try fallback banner placement
+            if (placementId == UnityAdsService.bannerPlacementId &&
+                _activePlacement == UnityAdsService.bannerPlacementId) {
+              setState(() {
+                _activePlacement = UnityAdsService.fallbackBannerPlacementId;
+                _failed = false;
+              });
+              return;
+            }
+
+            setState(() {
+              _failed = true;
+              _lastError = '$error';
+            });
+
+            // Automatically retry after 8 seconds
+            _retryTimer?.cancel();
+            _retryTimer = Timer(const Duration(seconds: 8), () {
+              if (mounted && _failed) {
+                setState(() => _failed = false);
+              }
+            });
+          }
         },
         onClick: (placementId) {
           debugPrint('Unity Banner clicked: $placementId');

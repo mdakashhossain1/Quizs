@@ -48,6 +48,8 @@
 -keep class com.unity3d.services.** { *; }
 -dontwarn com.unity3d.ads.**
 -dontwarn com.unity3d.services.**
+-keep class com.rebeloid.unity_ads.** { *; }
+-dontwarn com.rebeloid.unity_ads.**
 # ============================================================
 # Flutter Local Notifications
 # ============================================================
