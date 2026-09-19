@@ -291,10 +291,143 @@
             border-left-color: #F59E0B;
             color: #92400E;
         }
+        .callout-box.danger {
+            background: #FEF2F2;
+            border-left-color: #DC2626;
+            color: #991B1B;
+        }
+        .callout-box.success {
+            background: #ECFDF5;
+            border-left-color: #059669;
+            color: #065F46;
+        }
         .callout-box strong {
             display: block;
             margin-bottom: 4px;
             font-size: 14.5px;
+        }
+
+        /* Container without sidebar */
+        .container.no-sidebar {
+            grid-template-columns: 1fr;
+            max-width: 820px;
+        }
+        .legal-card.full-width {
+            padding: 44px 44px;
+        }
+
+        /* Interactive Deletion Form Elements */
+        .deletion-form-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 28px;
+            margin-top: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+        .form-group {
+            margin-bottom: 22px;
+        }
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--ink-primary);
+            margin-bottom: 8px;
+        }
+        .form-label .required {
+            color: #DC2626;
+        }
+        .form-input {
+            width: 100%;
+            padding: 13px 16px;
+            font-size: 15px;
+            font-family: inherit;
+            color: var(--ink-primary);
+            background: #FDFDFE;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--purple);
+            background: #FFFFFF;
+            box-shadow: 0 0 0 4px rgba(83, 0, 156, 0.12);
+        }
+        .form-help {
+            font-size: 12.5px;
+            color: var(--ink-muted);
+            margin-top: 6px;
+        }
+        .form-checkbox-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .form-checkbox {
+            margin-top: 4px;
+            width: 18px;
+            height: 18px;
+            accent-color: #DC2626;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .form-checkbox-text {
+            font-size: 13.5px;
+            color: #7F1D1D;
+            line-height: 1.5;
+            user-select: none;
+        }
+        .btn-delete-account {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 24px;
+            font-size: 15.5px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .btn-delete-account:hover {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.45);
+        }
+        .btn-delete-account:active {
+            transform: translateY(0);
+        }
+        .btn-delete-account svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+        .badge-danger {
+            background: #FEE2E2;
+            color: #DC2626;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
         }
 
         /* Tables for Subprocessors & Permissions */
@@ -392,6 +525,7 @@
                 <div class="nav-links">
                     <a href="https://quizs.in/privacy" class="{{ request()->is('privacy*') ? 'active' : '' }}">Privacy Policy</a>
                     <a href="https://quizs.in/terms" class="{{ request()->is('terms*') ? 'active' : '' }}">Terms & Conditions</a>
+                    <a href="https://quizs.in/delete-account" class="{{ request()->is('delete-account*') ? 'active' : '' }}">Delete Account</a>
                 </div>
             </nav>
             <div class="header-title-block">
@@ -405,15 +539,17 @@
         </div>
     </header>
 
-    <div class="container">
+    <div class="container @hasSection('toc') has-sidebar @else no-sidebar @endif">
+        @hasSection('toc')
         <aside class="sidebar">
             <div class="sidebar-title">Table of Contents</div>
             <ul class="sidebar-menu">
                 @yield('toc')
             </ul>
         </aside>
+        @endif
 
-        <main class="legal-card">
+        <main class="legal-card @unlessSection('toc') full-width @endunless">
             @yield('content')
         </main>
     </div>
@@ -423,6 +559,7 @@
             <div class="footer-links">
                 <a href="https://quizs.in/privacy">Privacy Policy</a>
                 <a href="https://quizs.in/terms">Terms of Service</a>
+                <a href="https://quizs.in/delete-account">Delete Account</a>
                 <a href="https://quizs.in">Official Website</a>
             </div>
             <p class="footer-contact">

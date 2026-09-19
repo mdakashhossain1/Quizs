@@ -405,9 +405,12 @@
         Once confirmed, our backend executes an automated cascading deletion procedure that permanently eradicates your user row, profile details, password hashes, email address, custom avatars, attendance calendar check-ins, quiz attempt records, notification preferences, and push device tokens from our active database. Client-side authentication tokens stored in your device keystore are cleared immediately, and you are logged out.
     </p>
 
-    <h3>13.2 Web-Based / Email Deletion Requests</h3>
+    <h3>13.2 Direct Web-Based Deletion Portal</h3>
     <p>
-        If you have uninstalled the application or cannot access your mobile handset, you can request full account deletion by transmitting an email from your registered email address to <a href="mailto:quizsappliaction@gmail.com?subject=Account%20Deletion%20Request">quizsappliaction@gmail.com</a> with the subject line <em>"Account Deletion Request"</em>. Our security team will verify your ownership of the email account and complete the permanent erasure within seven (7) business days, transmitting confirmation upon completion.
+        If you have uninstalled the application or cannot access your mobile handset, you can permanently delete your account directly through our official web deletion portal at <a href="https://quizs.in/delete-account">https://quizs.in/delete-account</a>. Simply enter your registered account email and confirm your deletion request. Our servers will immediately execute the cascading purge procedure and wipe your account.
+    </p>
+    <p>
+        Alternatively, you may transmit an email from your registered email address to <a href="mailto:quizsappliaction@gmail.com?subject=Account%20Deletion%20Request">quizsappliaction@gmail.com</a> with the subject line <em>"Account Deletion Request"</em>.
     </p>
 </section>
 

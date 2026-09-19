@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountDeletionController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AttendanceController;
@@ -29,9 +30,12 @@ Route::get('/', function () {
     return redirect()->route('admin.dashboard');
 });
 
-// Public legal pages — linked directly from the Flutter app's profile screen.
+// Public legal & compliance pages — linked directly from Flutter app & required by Google Play Console
 Route::get('/terms', [LegalController::class, 'terms'])->name('legal.terms');
 Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
+Route::get('/delete-account', [AccountDeletionController::class, 'show'])->name('account.delete');
+Route::post('/delete-account', [AccountDeletionController::class, 'destroy'])->name('account.delete.post');
+Route::get('/account-deletion', fn () => redirect()->route('account.delete'));
 
 // Admin Authentication (Public)
 Route::prefix('admin')->name('admin.')->group(function () {
