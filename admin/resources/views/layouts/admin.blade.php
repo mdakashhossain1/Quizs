@@ -239,6 +239,7 @@
     }
 </script>
 <script src="{{ asset('js/admin-ajax-table.js') }}"></script>
+@stack('scripts')
 
 </body>
 </html>
