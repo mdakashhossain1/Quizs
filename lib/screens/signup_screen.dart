@@ -32,7 +32,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _openTerms() async {
-    final uri = Uri.parse('https://policies.google.com/terms');
+    final uri = Uri.parse('https://quizs.in/terms');
     try {
       await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
     } catch (_) {}

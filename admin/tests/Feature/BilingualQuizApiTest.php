@@ -133,11 +133,13 @@ class BilingualQuizApiTest extends TestCase
             'slug' => 'bilingual-' . uniqid(), 'duration_minutes' => 5, 'passing_percentage' => 50,
             'difficulty' => 'easy', 'is_active' => true, 'sort_order' => 1,
         ]);
+        Question::create(['quiz_id' => $bilingualQuiz->id, 'question_text' => 'Bilingual question.', 'points' => 10, 'sort_order' => 0]);
         $englishOnlyQuiz = Quiz::create([
             'category_id' => $category->id, 'language' => 'en', 'title' => 'English Only Quiz',
             'slug' => 'english-only-' . uniqid(), 'duration_minutes' => 5, 'passing_percentage' => 50,
             'difficulty' => 'easy', 'is_active' => true, 'sort_order' => 1,
         ]);
+        Question::create(['quiz_id' => $englishOnlyQuiz->id, 'question_text' => 'English only question.', 'points' => 10, 'sort_order' => 0]);
 
         $hindiTitles = collect(
             $this->getJson("/api/categories/{$category->id}/quizzes?language=hi")->json('quizzes')

@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../l10n/app_strings.dart';
 import '../services/auth_service.dart';
 import '../services/profile_stats_service.dart';
+import '../services/sound_service.dart';
 import '../widgets/design_widgets.dart';
 import '../widgets/quiz_bottom_nav.dart';
 import '../widgets/shimmer_loading.dart';
@@ -26,6 +27,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     AppLanguage.instance.addListener(_onLanguageChanged);
     _loadStats();
+    _loadSoundPreference();
+  }
+
+  Future<void> _loadSoundPreference() async {
+    final enabled = await SoundService.instance.isEnabled();
+    if (mounted) setState(() => _soundEnabled = enabled);
   }
 
   @override
@@ -47,44 +54,92 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  static const String _privacyPolicyUrl =
-      'https://policies.google.com/privacy';
-  static const String _termsConditionsUrl =
-      'https://policies.google.com/terms';
+  // Dedicated Quizs-branded pages served by the Laravel backend (see
+  // admin/resources/views/legal/ and admin/routes/web.php) — these used to
+  // point at Google's own generic policies.google.com pages, which describe
+  // Google's data practices, not this app's.
+  static const String _privacyPolicyUrl = 'https://quizs.in/privacy';
+  static const String _termsConditionsUrl = 'https://quizs.in/terms';
 
   Future<void> _openPrivacyPolicy() async {
     final uri = Uri.parse(_privacyPolicyUrl);
     try {
-      final launched = await launchUrl(
-        uri,
-        mode: LaunchMode.inAppBrowserView,
-      );
-      if (!launched && mounted) {
-        _showPrivacyPolicyFallback();
-      }
+      final launched = await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+      if (!launched && mounted) _showPrivacyPolicyFallback();
     } catch (_) {
-      if (mounted) {
-        _showPrivacyPolicyFallback();
-      }
+      if (mounted) _showPrivacyPolicyFallback();
     }
   }
 
   Future<void> _openTermsConditions() async {
     final uri = Uri.parse(_termsConditionsUrl);
     try {
-      final launched = await launchUrl(
-        uri,
-        mode: LaunchMode.inAppBrowserView,
-      );
-      if (!launched && mounted) {
-        _showTermsDialog();
-      }
+      final launched = await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+      if (!launched && mounted) _showTermsDialog();
     } catch (_) {
-      if (mounted) {
-        _showTermsDialog();
-      }
+      if (mounted) _showTermsDialog();
     }
   }
+
+  static const String _privacyPolicyText = '''
+Last updated: September 2026
+
+Quizs ("we", "us") is a bilingual (English/Hindi) quiz app. This policy explains what data we collect and how we use it.
+
+Information we collect
+• Account details you provide: name, email address, and an optional profile photo.
+• Gameplay data: quizzes attempted, answers, scores, streaks, and leaderboard rankings.
+• Device information: a device identifier and push-notification token, used to keep you signed in and to deliver notifications.
+• Diagnostic data: crash and performance reports (via Firebase Crashlytics) to help us fix bugs.
+
+How we use your information
+• To operate core features: quiz play, scoring, streaks, and leaderboards.
+• To send you notifications about your activity, streaks, and app updates (you can turn these off in Profile > Notification).
+• To show ads that help keep Quizs free, served through Google Mobile Ads. These may use advertising identifiers as governed by Google's own policies.
+• To diagnose crashes and improve app stability and performance.
+
+Data sharing
+We do not sell your personal data. We share data only with the service providers that run the app on our behalf (e.g. Firebase for authentication, notifications, and crash reporting; Google Mobile Ads for advertising), and only as needed for them to provide that service.
+
+Data retention and control
+Your account data is retained while your account is active. You can update your profile at any time from Profile > Edit Profile, and you can request account deletion by contacting us.
+
+Children's privacy
+Quizs is intended for a general audience and does not knowingly collect personal data from children under 13 beyond what is needed for basic gameplay.
+
+Contact
+Questions about this policy can be sent to the app's support contact listed on the Play Store/App Store listing.
+''';
+
+  static const String _termsConditionsText = '''
+Last updated: September 2026
+
+By creating an account or using Quizs, you agree to the following terms.
+
+Your account
+You're responsible for keeping your login credentials secure and for all activity under your account. You must provide accurate information when you sign up.
+
+Fair play
+Quiz scores, streaks, and leaderboard rankings are meant to reflect genuine play. Using automated tools, exploits, or multiple accounts to manipulate scores or rankings is not allowed and may result in your account being suspended.
+
+Content
+Quiz questions, translations, and explanations are provided for informational and entertainment purposes. While we work to keep them accurate, we don't guarantee that every question or answer is error-free.
+
+Advertising
+Quizs is supported by in-app advertising served through Google Mobile Ads. Ads are shown at defined points in the app (e.g. between quiz questions) and are subject to Google's own advertising policies.
+
+Acceptable use
+You agree not to misuse the app — including attempting to disrupt its operation, reverse-engineer it beyond what's legally permitted, or use it to harass other users.
+
+Changes to these terms
+We may update these terms as the app evolves. Continuing to use Quizs after an update means you accept the revised terms.
+
+Termination
+We may suspend or terminate accounts that violate these terms, including fair-play violations or abusive behavior.
+
+Contact
+Questions about these terms can be sent to the app's support contact listed on the Play Store/App Store listing.
+''';
 
   void _showPrivacyPolicyFallback() {
     showDialog<void>(
@@ -94,8 +149,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text(AppStrings.t('privacy_policy')),
         content: const SingleChildScrollView(
           child: Text(
-            'Quizs respects your privacy. We collect minimal device identifiers and game progression stats solely to provide quiz features, streaks, and leaderboard rankings. No personal data is sold or shared with third parties without your consent.',
-            style: TextStyle(fontFamily: 'Poppins', fontSize: 13, height: 1.5),
+            _privacyPolicyText,
+            style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, height: 1.5),
           ),
         ),
         actions: [
@@ -292,8 +347,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text(AppStrings.t('terms_conditions')),
         content: const SingleChildScrollView(
           child: Text(
-            'By using Quizs, you agree to our standard community guidelines and fair play terms. All quiz questions and rankings are monitored to ensure a fair competitive experience.',
-            style: TextStyle(fontFamily: 'Poppins', fontSize: 13, height: 1.5),
+            _termsConditionsText,
+            style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, height: 1.5),
           ),
         ),
         actions: [
@@ -524,7 +579,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: AppStrings.t('sound'),
             trailing: _CustomToggle(
               value: _soundEnabled,
-              onChanged: (val) => setState(() => _soundEnabled = val),
+              onChanged: (val) {
+                setState(() => _soundEnabled = val);
+                SoundService.instance.setEnabled(val);
+                if (val) SoundService.instance.playClick();
+              },
             ),
           ),
         ),

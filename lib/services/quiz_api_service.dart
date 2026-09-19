@@ -161,6 +161,15 @@ class QuizApiService {
     return QuizRanking.fromJson(ranking);
   }
 
+  /// Site-wide totals + leaderboard across ALL of the user's completed
+  /// quizzes — same response shape as [submitAttempt], so it renders on the
+  /// same results/podium screen. Used when that screen is opened from
+  /// Home's "Leaderboard" card rather than right after finishing a quiz.
+  Future<Map<String, dynamic>> fetchGlobalResult() async {
+    final data = await ApiClient.instance.get('/leaderboard');
+    return data['result'] as Map<String, dynamic>? ?? {};
+  }
+
   /// Builds a [QuizTopic] for a single quiz by id — used to deep-link a
   /// push notification's `quiz_details` destination straight into that
   /// quiz's question flow without hardcoding anything about it client-side.

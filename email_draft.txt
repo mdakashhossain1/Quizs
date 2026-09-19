@@ -10,6 +10,8 @@ https://drive.google.com/file/d/1BAX-uLC5EWtrp6ylDFEpoB7xM1yD6fmM/view?usp=shari
 
 Please install this new application, test it thoroughly, and let us know your complete feedback. Your original admin dashboard credentials remain the same.
 
+Also, the logos for the categories are now in place and showing correctly in the application.
+
 Gmail Account:
 Email: quizsappliaction@gmail.com
 Password: Aama@1964

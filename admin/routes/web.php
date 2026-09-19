@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -27,6 +28,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return redirect()->route('admin.dashboard');
 });
+
+// Public legal pages — linked directly from the Flutter app's profile screen.
+Route::get('/terms', [LegalController::class, 'terms'])->name('legal.terms');
+Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
 
 // Admin Authentication (Public)
 Route::prefix('admin')->name('admin.')->group(function () {

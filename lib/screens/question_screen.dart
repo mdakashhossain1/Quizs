@@ -8,6 +8,7 @@ import '../l10n/app_strings.dart';
 import '../models/question_model.dart';
 import '../models/quiz_ranking_model.dart';
 import '../services/quiz_api_service.dart';
+import '../services/sound_service.dart';
 import '../widgets/design_widgets.dart';
 import 'results_screen.dart';
 
@@ -175,6 +176,11 @@ class _QuestionScreenState extends State<QuestionScreen> {
       }
     });
 
+    if (isCorrect) {
+      SoundService.instance.playCorrect();
+    } else {
+      SoundService.instance.playWrong();
+    }
     _syncAnswer(currentQ, index);
     _startCountdown();
   }

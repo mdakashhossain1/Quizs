@@ -35,6 +35,73 @@ class QuizRankingService
     }
 
     /**
+     * Site-wide version of [summaryFor] — same {top, your_rank,
+     * total_participants} shape (the app's ResultsScreen renders both with
+     * the same podium/leaderboard UI), but ranking every user by their
+     * totals across ALL completed quizzes instead of one quiz's attempts.
+     * Also returns the requesting user's own aggregate totals, so the
+     * screen can show "your" solved/right/wrong exactly like it does right
+     * after finishing a single quiz.
+     */
+    public static function globalSummaryFor(int $userId, int $limit = 10): array
+    {
+        $totals = QuizAttempt::where('status', 'completed')
+            // LEAST(...) guards against a completed attempt whose cached
+            // correct_answers outlived its answer rows (e.g. a question got
+            // deleted afterward and cascade-deleted them, roadmap data-
+            // integrity gap) — such a row can never contribute more correct
+            // answers than it has solved questions.
+            ->selectRaw('user_id, SUM(attempted_questions) as total_solved, SUM(LEAST(correct_answers, attempted_questions)) as total_correct, SUM(wrong_answers) as total_wrong')
+            ->groupBy('user_id')
+            ->with('user:id,name,avatar')
+            ->get()
+            // Correct-answer count is the primary ranking signal; total
+            // solved only breaks a tie between two users with the same
+            // correct count.
+            ->sortByDesc(fn ($row) => ((int) $row->total_correct * 1_000_000) + (int) $row->total_solved)
+            ->values();
+
+        $yourIndex = $totals->search(fn ($row) => (int) $row->user_id === $userId);
+        $yourRow = $yourIndex === false ? null : $totals[$yourIndex];
+        $yourSolved = (int) ($yourRow->total_solved ?? 0);
+        $yourCorrect = (int) ($yourRow->total_correct ?? 0);
+        $yourWrong = (int) ($yourRow->total_wrong ?? 0);
+
+        return [
+            'total_questions' => $yourSolved,
+            'correct_answers' => $yourCorrect,
+            'wrong_answers' => $yourWrong,
+            'accuracy' => $yourSolved > 0 ? round($yourCorrect / $yourSolved * 100, 2) : 0,
+            'ranking' => [
+                'top' => $totals->take($limit)->values()
+                    ->map(fn ($row, int $i) => self::formatGlobalRow($row, $i + 1))
+                    ->all(),
+                'your_rank' => $yourIndex === false ? null : $yourIndex + 1,
+                'total_participants' => $totals->count(),
+            ],
+        ];
+    }
+
+    /** @param object{user_id: int, total_solved: int, total_correct: int, total_wrong: int, user: ?\App\Models\User} $row */
+    private static function formatGlobalRow(object $row, int $rank): array
+    {
+        $solved = (int) $row->total_solved;
+        $correct = (int) $row->total_correct;
+
+        return [
+            'rank' => $rank,
+            'user_id' => (int) $row->user_id,
+            'name' => $row->user->name ?? 'Unknown',
+            'avatar' => $row->user->avatar ?? null,
+            'score' => $correct,
+            'correct_answers' => $correct,
+            'wrong_answers' => (int) $row->total_wrong,
+            'accuracy' => $solved > 0 ? round($correct / $solved * 100, 2) : 0,
+            'time_taken_seconds' => null,
+        ];
+    }
+
+    /**
      * One row per user: their best completed attempt for this quiz, sorted
      * best-first using the roadmap's recommended tie-break order (score,
      * then accuracy, then lower completion time, then earlier completion).
