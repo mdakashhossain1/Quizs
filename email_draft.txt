@@ -66,18 +66,18 @@ Google Play Console requires this exact keystore to sign and verify all current 
   https://quizs.in/delete-account
 
 ======================================================================
-5. PRODUCTION BUILDS FOR RELEASE & TESTING
+5. PRODUCTION BUILDS FOR RELEASE & TESTING (Version 1.1.0, Build 2)
 ======================================================================
 Both builds have been generated and signed with the official release key above:
 
 1) Google Play Store App Bundle (.aab):
    • File: build/app/outputs/bundle/release/app-release.aab
-   • Size: ~67.3 MB
+   • Size: ~38.8 MB
    • Usage: This is the official file to upload to the Google Play Console under Production / Closed Testing tracks.
 
 2) Direct Test Release APK (.apk):
    • File: build/app/outputs/flutter-apk/app-release.apk
-   • Size: ~63.1 MB
+   • Size: ~66.2 MB
    • Usage: Standalone release-signed APK that you can directly install and test on physical Android phones.
 
 ======================================================================

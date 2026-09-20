@@ -58,11 +58,14 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            ndk {
+                debugSymbolLevel = "NONE"
+            }
         }
     }
 
     firebaseCrashlytics {
-        nativeSymbolUploadEnabled = true
+        nativeSymbolUploadEnabled = false
     }
 }
 
