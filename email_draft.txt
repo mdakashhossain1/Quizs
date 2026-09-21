@@ -1,94 +1,46 @@
-Subject: Quizs Application - Production Release Build, Keystore & Account Credentials
-Date: September 19, 2026
+Subject: Quizs Update: Google Login Fixed & New Version Live on Play Store 🚀
+Date: September 21, 2026
 
-Hi A.Krishna Rao,
+Dear A.Krishna Rao,
 
-We have prepared the official production release builds for the Quizs application and generated the permanent release signing keystore required for the Google Play Store.
+We are pleased to inform you that an updated release of your app, "Quizs - Smart work smarter you" (Version 1.1.0, Build 3), has been uploaded to the Google Play Store, and the Google Sign-In issue is completely resolved!
 
-Please save this email and store a backup of all credentials and keystore files in a safe location (e.g., Google Drive, external hard drive). These keys are strictly required to release future updates on Google Play.
+📲 Play Store Link:
+https://play.google.com/store/apps/details?id=com.quizs.application.arknox
 
-======================================================================
-1. GOOGLE & ADMIN ACCOUNT CREDENTIALS
-======================================================================
-• Primary Gmail Account:
-  Email: Cuizs686@gmail.com
-  Password: Aama@1964
+----------------------------------------------------------------------
+1. GOOGLE LOGIN FIX (SHA KEY UPDATE)
+----------------------------------------------------------------------
+• Why it happened: When an app is published, Google Play automatically re-signs it with a new Production App Signing Key. Because this production SHA key is generated after launch, it had to be registered with Firebase.
+• The Fix: We extracted the production SHA-1 key (2D:68:DB:...) from Play Console and linked it with your Firebase & Google Cloud accounts. Google Login is now 100% active and working.
 
-• Secondary / Previous Account:
-  Email: quizsappliaction@gmail.com
-  Password: Aama@1964
+----------------------------------------------------------------------
+2. WHAT'S IN THIS NEW BUILD (BUILD 3)
+----------------------------------------------------------------------
+• Full DEX code optimization and shrinking enabled (meeting Google Play performance standards).
+• Android 15 Edge-to-Edge display support for seamless full-screen UI.
 
-• Admin Panel Login:
-  Email: quizsappliaction@gmail.com (or Cuizs686@gmail.com)
-  Password: Aama@1964
+----------------------------------------------------------------------
+3. QUICK UNITY ADS MONETIZATION SUMMARY
+----------------------------------------------------------------------
+• Payout Cycle: Net 60 (e.g., September revenue is paid out by late November).
+• Minimum Payout: $100 USD (earnings below $100 roll over automatically).
+• Payment Methods: Direct Bank Wire Transfer (INR credit via Account No, IFSC, SWIFT) or PayPal via Tipalti.
+• Safe Ad Limits: 1 interstitial every 2–3 mins; 5–10 rewarded ads/user/day; healthy CTR is 1.5%–3.5% (strictly no self-clicks).
+• Setup: Go to Unity Dashboard (dashboard.unity.com) -> Monetization -> Setup -> Finance -> Payout Profile to add bank details & W-8BEN form.
 
-======================================================================
-2. CLIENT & REGISTRATION DETAILS
-======================================================================
-• Name: A.Krishna Rao
-• Mobile No: +91 7788872183
-• Address: At-Uma nagar 7th lane, Po-Lanjipalli, Dist-Ganjam
-• City: Berhampur
-• State: Odisha
-• PIN Code: 760008
+----------------------------------------------------------------------
+4. THANK YOU FROM ARKNOX
+----------------------------------------------------------------------
+Thank you so much for choosing and working with Arknox! It has been a pleasure collaborating with you to bring Quizs to life.
 
-======================================================================
-3. PRODUCTION APP SIGNING KEYSTORE (CRITICAL - DO NOT LOSE)
-======================================================================
-Google Play Console requires this exact keystore to sign and verify all current and future updates of the Quizs app. If this keystore or its passwords are lost, the app cannot be updated on the Google Play Store.
+If you are happy with our work and support, please take a moment to leave us a review:
+👉 Google Business Review: [Insert Your Google Business Profile Review Link Here]
 
-• Keystore File: upload-keystore.jks
-• Keystore Storage Location in Project: android/app/upload-keystore.jks
-• Keystore Backup on PC: C:\Users\ARKNOX\upload-keystore.jks
-• Key Alias: upload
-• Keystore Password: Aama@1964
-• Key Password: Aama@1964
-• Validity: 10,000 days (Valid until February 4, 2054)
-• Certificate Distinguished Name (DN):
-  CN=A.Krishna Rao, OU=Quizs, O=Quizs, L=Berhampur, ST=Odisha, C=IN
+Please test the live app and let us know if you have any questions. We are always here to assist you!
 
-• Certificate Fingerprints (For Firebase, Google Sign-In & Play Console):
-  - SHA-1:
-    83:DB:A5:A8:A0:31:5C:F1:35:83:0D:9B:30:19:67:49:2C:DA:51:AD
-  - SHA-256:
-    8F:DB:EB:E2:B6:21:4D:3F:F0:85:93:B4:C4:87:D3:EC:81:1E:72:6C:79:1D:80:0E:07:0A:48:D3:26:08:80:42
+Warm regards,
 
-======================================================================
-4. LEGAL & STORE LISTING URLS (FOR GOOGLE PLAY CONSOLE)
-======================================================================
-• Privacy Policy URL:
-  https://quizs.in/privacy
-
-• Terms & Conditions URL:
-  https://quizs.in/terms
-
-• Account Deletion Request URL (Google Play Data Safety Requirement):
-  https://quizs.in/delete-account
-
-======================================================================
-5. PRODUCTION BUILDS FOR RELEASE & TESTING (Version 1.1.0, Build 2)
-======================================================================
-Both builds have been generated and signed with the official release key above:
-
-1) Google Play Store App Bundle (.aab):
-   • File: build/app/outputs/bundle/release/app-release.aab
-   • Size: ~38.8 MB
-   • Usage: This is the official file to upload to the Google Play Console under Production / Closed Testing tracks.
-
-2) Direct Test Release APK (.apk):
-   • File: build/app/outputs/flutter-apk/app-release.apk
-   • Size: ~66.2 MB
-   • Usage: Standalone release-signed APK that you can directly install and test on physical Android phones.
-
-======================================================================
-5. IMPORTANT BACKUP INSTRUCTIONS
-======================================================================
-1. Download and copy "upload-keystore.jks" to at least two secure places (e.g., your personal Google Drive and a secure USB drive).
-2. Never share your keystore passwords or upload the keystore file to public repositories.
-3. Keep this email saved in your starred or archived folder for permanent reference.
-
-If you have any questions or need assistance during the Google Play Console publishing process, please feel free to reach out.
-
-Best regards,
-
-Arknox
+Akash Hossain & Team Arknox
+Website: https://quizs.in
+Email: hossainakash72958@gmail.com / quizsappliaction@gmail.com
