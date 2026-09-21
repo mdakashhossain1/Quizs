@@ -124,8 +124,8 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with(
             'success',
             $emailQueued
-                ? "User created. Temporary password: {$temporaryPassword} (email queued for {$user->email})."
-                : "User created. Temporary password: {$temporaryPassword} (email could not be queued — share this password with the user directly)."
+                ? "User created. Temporary password: {$temporaryPassword} (email sent to {$user->email})."
+                : "User created. Temporary password: {$temporaryPassword} (email could not be sent — share this password with the user directly)."
         );
     }
 
@@ -138,10 +138,10 @@ class UserController extends Controller
     private function sendAccountMail(User $user, string $temporaryPassword, bool $isReset = false): bool
     {
         try {
-            Mail::to($user->email)->queue(new NewAccountMail($user, $temporaryPassword, isReset: $isReset));
+            Mail::to($user->email)->send(new NewAccountMail($user, $temporaryPassword, isReset: $isReset));
             return true;
         } catch (Throwable $e) {
-            Log::warning('Account credential email failed to queue', [
+            Log::warning('Account credential email failed to send', [
                 'user_id' => $user->id,
                 'is_reset' => $isReset,
                 'error' => $e->getMessage(),
@@ -210,8 +210,8 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with(
             'success',
             $emailQueued
-                ? "Password reset for {$user->name}. Temporary password: {$temporaryPassword} (email queued)."
-                : "Password reset for {$user->name}. Temporary password: {$temporaryPassword} (email could not be queued — share this password with the user directly)."
+                ? "Password reset for {$user->name}. Temporary password: {$temporaryPassword} (email sent)."
+                : "Password reset for {$user->name}. Temporary password: {$temporaryPassword} (email could not be sent — share this password with the user directly)."
         );
     }
 
