@@ -39,6 +39,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _handleSignUp() async {
+    if (_isLoading) return;
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();

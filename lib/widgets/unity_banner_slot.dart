@@ -192,26 +192,20 @@ class _UnityBannerSlotState extends State<UnityBannerSlot> {
         onFailed: (placementId, error, message) {
           debugPrint('Unity Banner failed: $placementId - $error: $message');
           if (mounted) {
-            // If primary Banner_Android failed, try fallback banner placement
-            if (placementId == UnityAdsService.bannerPlacementId &&
-                _activePlacement == UnityAdsService.bannerPlacementId) {
-              setState(() {
-                _activePlacement = UnityAdsService.fallbackBannerPlacementId;
-                _failed = false;
-              });
-              return;
-            }
-
+            // If primary failed, record error and retry primary on timer
             setState(() {
               _failed = true;
-              _lastError = '$error';
+              _lastError = message.trim().isNotEmpty ? message : '$error';
             });
 
-            // Automatically retry after 8 seconds
+            // Automatically retry primary placement after 10 seconds
             _retryTimer?.cancel();
-            _retryTimer = Timer(const Duration(seconds: 8), () {
-              if (mounted && _failed) {
-                setState(() => _failed = false);
+            _retryTimer = Timer(const Duration(seconds: 10), () {
+              if (mounted) {
+                setState(() {
+                  _failed = false;
+                  _activePlacement = UnityAdsService.bannerPlacementId;
+                });
               }
             });
           }

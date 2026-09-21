@@ -187,7 +187,11 @@ class AuthController extends Controller
             'otp_expires_at' => null,
         ])->save();
 
-        Mail::to($user->email)->queue(new WelcomeMail($user));
+        try {
+            Mail::to($user->email)->send(new WelcomeMail($user));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Welcome email failed to send: '.$e->getMessage());
+        }
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
@@ -209,7 +213,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('email', $request->email)->first();
-        $this->issueOtp($user);
+        $this->issueOtp($user, isPasswordReset: true);
 
         return response()->json([
             'success' => true,
@@ -270,7 +274,7 @@ class AuthController extends Controller
     /**
      * Generate a fresh 4-digit OTP for the user, store it hashed, and email it.
      */
-    private function issueOtp(User $user): void
+    private function issueOtp(User $user, bool $isPasswordReset = false): void
     {
         $code = (string) random_int(1000, 9999);
 
@@ -279,7 +283,7 @@ class AuthController extends Controller
             'otp_expires_at' => now()->addMinutes(self::OTP_TTL_MINUTES),
         ])->save();
 
-        Mail::to($user->email)->queue(new OtpMail($code, self::OTP_TTL_MINUTES));
+        Mail::to($user->email)->send(new OtpMail($code, self::OTP_TTL_MINUTES, $isPasswordReset));
     }
 
     /**

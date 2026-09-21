@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
@@ -33,9 +34,41 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _isVerifying = false;
   bool _isResending = false;
+  Timer? _resendTimer;
+  int _resendCountdown = 300;
+
+  String _formatTimer(int totalSeconds) {
+    final m = (totalSeconds ~/ 60).toString().padLeft(2, '0');
+    final s = (totalSeconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _startResendTimer();
+  }
+
+  void _startResendTimer() {
+    _resendTimer?.cancel();
+    setState(() => _resendCountdown = 300);
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_resendCountdown <= 1) {
+        timer.cancel();
+        setState(() => _resendCountdown = 0);
+      } else {
+        setState(() => _resendCountdown--);
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _resendTimer?.cancel();
     for (final c in _controllers) {
       c.dispose();
     }
@@ -100,7 +133,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   }
 
   void _handleResend(String email, bool isPasswordReset) async {
-    if (_isResending) return;
+    if (_isResending || _resendCountdown > 0) return;
     setState(() => _isResending = true);
     try {
       if (isPasswordReset) {
@@ -109,6 +142,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
         await AuthService.instance.resendOtp(email: email);
       }
       _showMessage('A fresh 4-digit verification code has been sent!');
+      _startResendTimer();
     } on ApiException catch (e) {
       _showMessage(e.message);
     } finally {
@@ -269,19 +303,30 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                           ),
                         ),
                         const SizedBox(width: 5),
-                        GestureDetector(
-                          onTap: () => _handleResend(emailArg, isPasswordReset),
-                          child: Text(
-                            AppStrings.t('resend_code'),
+                        if (_resendCountdown > 0)
+                          Text(
+                            'Resend in ${_formatTimer(_resendCountdown)}',
                             style: const TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1E1E1E),
-                              decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF9E92AB),
+                            ),
+                          )
+                        else
+                          GestureDetector(
+                            onTap: () => _handleResend(emailArg, isPasswordReset),
+                            child: Text(
+                              AppStrings.t('resend_code'),
+                              style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1E1E1E),
+                                decoration: TextDecoration.underline,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
 
