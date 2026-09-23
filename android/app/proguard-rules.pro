@@ -28,14 +28,16 @@
 -dontwarn com.crashlytics.**
 
 # ============================================================
-# Unity Ads (Required for SDK operation)
+# IronSource / Unity LevelPlay & Mediated Unity Ads
 # ============================================================
+-keep class com.ironsource.** { *; }
+-keep class com.ironsource.adapters.** { *; }
+-dontwarn com.ironsource.**
 -keep class com.unity3d.ads.** { *; }
 -keep class com.unity3d.services.** { *; }
 -dontwarn com.unity3d.ads.**
 -dontwarn com.unity3d.services.**
--keep class com.rebeloid.unity_ads.** { *; }
--dontwarn com.rebeloid.unity_ads.**
+-dontwarn com.unity3d.ads-mediation.**
 
 # ============================================================
 # Flutter Local Notifications & WorkManager / Room

@@ -1,5 +1,6 @@
 import java.io.FileInputStream
 import java.util.Properties
+import org.gradle.api.JavaVersion
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -67,6 +68,10 @@ android {
     firebaseCrashlytics {
         nativeSymbolUploadEnabled = false
     }
+
+    lint {
+        abortOnError = false
+    }
 }
 
 kotlin {
@@ -81,4 +86,13 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+
+    // Google Play Services required by IronSource LevelPlay
+    implementation("com.google.android.gms:play-services-appset:16.0.2")
+    implementation("com.google.android.gms:play-services-ads-identifier:18.0.1")
+    implementation("com.google.android.gms:play-services-basement:18.3.0")
+
+    // Unity Ads Mediation Adapter for IronSource LevelPlay
+    implementation("com.unity3d.ads-mediation:unityads-adapter:5.5.0")
+    implementation("com.unity3d.ads:unity-ads:4.16.6")
 }

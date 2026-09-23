@@ -3,13 +3,13 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:unity_ads_plugin/unity_ads_plugin.dart';
+import 'package:unity_levelplay_mediation/unity_levelplay_mediation.dart';
 
 import '../l10n/app_strings.dart';
-import '../services/unity_ads_service.dart';
+import '../services/iron_source_service.dart';
 
-class UnityBannerSlot extends StatefulWidget {
-  const UnityBannerSlot({super.key, this.isDark});
+class IronSourceBannerSlot extends StatefulWidget {
+  const IronSourceBannerSlot({super.key, this.isDark});
 
   final bool? isDark;
 
@@ -19,24 +19,28 @@ class UnityBannerSlot extends StatefulWidget {
   static const double height = adHeight + labelHeight;
 
   @override
-  State<UnityBannerSlot> createState() => _UnityBannerSlotState();
+  State<IronSourceBannerSlot> createState() => _IronSourceBannerSlotState();
 }
 
-class _UnityBannerSlotState extends State<UnityBannerSlot> {
+class _IronSourceBannerSlotState extends State<IronSourceBannerSlot>
+    with LevelPlayBannerAdViewListener {
+  final GlobalKey<LevelPlayBannerAdViewState> _bannerKey =
+      GlobalKey<LevelPlayBannerAdViewState>();
+
   bool _failed = false;
   String? _lastError;
-  String _activePlacement = UnityAdsService.bannerPlacementId;
+  bool _isAdLoaded = false;
   Timer? _retryTimer;
 
   @override
   void initState() {
     super.initState();
-    UnityAdsService.instance.addListener(_onServiceUpdate);
+    IronSourceService.instance.addListener(_onServiceUpdate);
   }
 
   @override
   void dispose() {
-    UnityAdsService.instance.removeListener(_onServiceUpdate);
+    IronSourceService.instance.removeListener(_onServiceUpdate);
     _retryTimer?.cancel();
     super.dispose();
   }
@@ -44,6 +48,17 @@ class _UnityBannerSlotState extends State<UnityBannerSlot> {
   void _onServiceUpdate() {
     if (mounted) {
       setState(() {});
+      if (IronSourceService.instance.isInitialized && !_isAdLoaded && !_failed) {
+        _loadBanner();
+      }
+    }
+  }
+
+  void _loadBanner() {
+    try {
+      _bannerKey.currentState?.loadAd();
+    } catch (e) {
+      debugPrint('Error loading LevelPlay banner: $e');
     }
   }
 
@@ -53,22 +68,88 @@ class _UnityBannerSlotState extends State<UnityBannerSlot> {
       setState(() {
         _failed = false;
         _lastError = null;
-        _activePlacement = UnityAdsService.bannerPlacementId;
+      });
+      _loadBanner();
+    }
+  }
+
+  // --- LevelPlayBannerAdViewListener Callbacks ---
+
+  @override
+  void onAdLoaded(LevelPlayAdInfo adInfo) {
+    debugPrint('LevelPlay Banner loaded: ${adInfo.adUnitId}');
+    if (mounted) {
+      setState(() {
+        _isAdLoaded = true;
+        _failed = false;
+        _lastError = null;
       });
     }
   }
 
   @override
+  void onAdLoadFailed(LevelPlayAdError error) {
+    debugPrint(
+      'LevelPlay Banner load failed: ${error.errorCode} - ${error.errorMessage}',
+    );
+    if (mounted) {
+      setState(() {
+        _failed = true;
+        _lastError = error.errorMessage;
+      });
+
+      _retryTimer?.cancel();
+      _retryTimer = Timer(const Duration(seconds: 15), () {
+        if (mounted && _failed) {
+          _retryBanner();
+        }
+      });
+    }
+  }
+
+  @override
+  void onAdDisplayed(LevelPlayAdInfo adInfo) {
+    debugPrint('LevelPlay Banner displayed: ${adInfo.adUnitId}');
+  }
+
+  @override
+  void onAdDisplayFailed(LevelPlayAdInfo adInfo, LevelPlayAdError error) {
+    debugPrint(
+      'LevelPlay Banner display failed: ${error.errorCode} - ${error.errorMessage}',
+    );
+  }
+
+  @override
+  void onAdClicked(LevelPlayAdInfo adInfo) {
+    debugPrint('LevelPlay Banner clicked: ${adInfo.adUnitId}');
+  }
+
+  @override
+  void onAdExpanded(LevelPlayAdInfo adInfo) {
+    debugPrint('LevelPlay Banner expanded: ${adInfo.adUnitId}');
+  }
+
+  @override
+  void onAdCollapsed(LevelPlayAdInfo adInfo) {
+    debugPrint('LevelPlay Banner collapsed: ${adInfo.adUnitId}');
+  }
+
+  @override
+  void onAdLeftApplication(LevelPlayAdInfo adInfo) {
+    debugPrint('LevelPlay Banner left application: ${adInfo.adUnitId}');
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isDark = widget.isDark ??
+    final isDark =
+        widget.isDark ??
         (ThemeData.estimateBrightnessForColor(Theme.of(context).canvasColor) ==
             Brightness.dark);
-    final labelColor = isDark
-        ? const Color(0xB3FFFFFF)
-        : const Color(0xFF757575);
+    final labelColor =
+        isDark ? const Color(0xB3FFFFFF) : const Color(0xFF757575);
 
     final advertisementLabel = SizedBox(
-      height: UnityBannerSlot.labelHeight,
+      height: IronSourceBannerSlot.labelHeight,
       child: Center(
         child: Text(
           AppStrings.t('advertisement'),
@@ -86,14 +167,14 @@ class _UnityBannerSlotState extends State<UnityBannerSlot> {
 
     Widget adContent;
     final inTest = !kIsWeb && Platform.environment.containsKey('FLUTTER_TEST');
-    final service = UnityAdsService.instance;
+    final service = IronSourceService.instance;
 
     if (!service.isSupported || inTest) {
       adContent = Container(
         color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFF2F2F7),
         alignment: Alignment.center,
         child: Text(
-          'Unity Ads (Android only)',
+          'IronSource Ads (Mobile only)',
           style: TextStyle(
             fontSize: 10,
             color: isDark ? const Color(0xFFAAAAAA) : const Color(0xFF777777),
@@ -110,7 +191,7 @@ class _UnityBannerSlotState extends State<UnityBannerSlot> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Unity Init: ${service.lastError ?? "Failed"}',
+                'IronSource Init: ${service.lastError ?? "Failed"}',
                 style: TextStyle(
                   fontSize: 9,
                   color: isDark ? Colors.redAccent : Colors.red,
@@ -178,56 +259,29 @@ class _UnityBannerSlotState extends State<UnityBannerSlot> {
         ),
       );
     } else {
-      adContent = UnityBannerAd(
-        placementId: _activePlacement,
-        onLoad: (placementId) {
-          debugPrint('Unity Banner loaded successfully: $placementId');
-          if (_failed && mounted) {
-            setState(() {
-              _failed = false;
-              _lastError = null;
-            });
-          }
-        },
-        onFailed: (placementId, error, message) {
-          debugPrint('Unity Banner failed: $placementId - $error: $message');
-          if (mounted) {
-            // If primary failed, record error and retry primary on timer
-            setState(() {
-              _failed = true;
-              _lastError = message.trim().isNotEmpty ? message : '$error';
-            });
-
-            // Automatically retry primary placement after 10 seconds
-            _retryTimer?.cancel();
-            _retryTimer = Timer(const Duration(seconds: 10), () {
-              if (mounted) {
-                setState(() {
-                  _failed = false;
-                  _activePlacement = UnityAdsService.bannerPlacementId;
-                });
-              }
-            });
-          }
-        },
-        onClick: (placementId) {
-          debugPrint('Unity Banner clicked: $placementId');
+      adContent = LevelPlayBannerAdView(
+        key: _bannerKey,
+        adUnitId: IronSourceService.bannerAdUnitId,
+        adSize: LevelPlayAdSize.BANNER,
+        listener: this,
+        onPlatformViewCreated: () {
+          _loadBanner();
         },
       );
     }
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth < UnityBannerSlot.width) {
+        if (constraints.maxWidth < IronSourceBannerSlot.width) {
           return Center(
             child: SizedBox(
-              height: UnityBannerSlot.height,
+              height: IronSourceBannerSlot.height,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   advertisementLabel,
                   SizedBox(
-                    height: UnityBannerSlot.adHeight,
+                    height: IronSourceBannerSlot.adHeight,
                     child: adContent,
                   ),
                 ],
@@ -237,15 +291,15 @@ class _UnityBannerSlotState extends State<UnityBannerSlot> {
         }
         return Center(
           child: SizedBox(
-            width: UnityBannerSlot.width,
-            height: UnityBannerSlot.height,
+            width: IronSourceBannerSlot.width,
+            height: IronSourceBannerSlot.height,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 advertisementLabel,
                 SizedBox(
-                  width: UnityBannerSlot.width,
-                  height: UnityBannerSlot.adHeight,
+                  width: IronSourceBannerSlot.width,
+                  height: IronSourceBannerSlot.adHeight,
                   child: adContent,
                 ),
               ],

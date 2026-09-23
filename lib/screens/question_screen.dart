@@ -8,7 +8,7 @@ import '../models/question_model.dart';
 import '../models/quiz_ranking_model.dart';
 import '../services/quiz_api_service.dart';
 import '../services/sound_service.dart';
-import '../services/unity_ads_service.dart';
+import '../services/iron_source_service.dart';
 import '../widgets/design_widgets.dart';
 import 'results_screen.dart';
 
@@ -228,7 +228,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
 
     _answeredInSessionCount++;
     if (_answeredInSessionCount % 2 == 0) {
-      UnityAdsService.instance.showInterstitialAd(
+      IronSourceService.instance.showInterstitialAd(
         onComplete: () {
           if (!mounted) return;
           _proceedToNextOrFinish();

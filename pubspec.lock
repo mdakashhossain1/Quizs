@@ -600,6 +600,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.2"
+  in_app_review:
+    dependency: "direct main"
+    description:
+      name: in_app_review
+      sha256: "364db0c160b37fe7fad9cdaa18f968473924b17368869010af902760421b6bf8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.12"
+  in_app_review_platform_interface:
+    dependency: transitive
+    description:
+      name: in_app_review_platform_interface
+      sha256: fed2c755f2125caa9ae10495a3c163aa7fab5af3585a9c62ef4a6920c5b45f10
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.5"
+  in_app_update:
+    dependency: "direct main"
+    description:
+      name: in_app_update
+      sha256: "9924a3efe592e1c0ec89dda3683b3cfec3d4cd02d908e6de00c24b759038ddb1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.2.5"
   jni:
     dependency: transitive
     description:
@@ -973,14 +997,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
-  unity_ads_plugin:
+  unity_levelplay_mediation:
     dependency: "direct main"
     description:
-      name: unity_ads_plugin
-      sha256: "4f9443575cdc018f4de4011081fcc5bdceb7ae760e27a560746595190625e30a"
+      name: unity_levelplay_mediation
+      sha256: "686432b705c701ded78a11bee54b63bacb18277d618afb54231925f91a1f8e27"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.0"
+    version: "9.2.0"
   url_launcher:
     dependency: "direct main"
     description:

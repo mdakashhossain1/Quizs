@@ -1,0 +1,58 @@
+===================================================================
+UNITY ADS + LEVELPLAY INTEGRATION - REMAINING STEPS CHECKLIST
+===================================================================
+
+[Note: App code me SDK aur Unity Adapter already 100% ready hai.
+ Sirf dashboards me linking aur test device add karna baaki hai.]
+
+-------------------------------------------------------------------
+STEP 1: UNITY CLOUD DASHBOARD SETUP (cloud.unity.com)
+-------------------------------------------------------------------
+1. Login karein: https://cloud.unity.com/
+2. Apna Project open karein.
+3. Left menu se "Unity Ads Monetization" me jayein.
+4. "Enable Ads" karein:
+   - Select: "I will use mediation" -> "Unity LevelPlay".
+   - Select: "My app is not live yet" (agar app store par live nahi hai).
+5. Details note karein:
+   - Organization Core ID (Settings / API Management se milega)
+   - API Key (Create API Key par click karke copy karein)
+   - Android Game ID (7-digit number, Placements page par dikhega)
+   - Placement IDs:
+     * Banner placement name (e.g., Banner_Android)
+     * Interstitial placement name (e.g., Interstitial_Android)
+
+-------------------------------------------------------------------
+STEP 2: LEVELPLAY DASHBOARD ME CONNECT KAREIN (platform.ironsrc.com)
+-------------------------------------------------------------------
+1. Login karein: https://platform.ironsrc.com/
+2. Left menu -> "Networks" me jayein.
+3. "Unity Ads" ke aage "Setup" button par click karein:
+   - Step 1 ka "Organization Core ID" aur "API Key" paste karein.
+   - Save karein.
+4. Left menu -> "Instances" me jayein:
+   - Apna App select karein -> "Unity Ads" par click karein.
+   - Step 1 ka "Game ID" paste karein.
+   - "Add Instance" par click karein:
+     * Banner instance me Unity ka Banner placement ID dalein.
+     * Interstitial instance me Unity ka Interstitial placement ID dalein.
+   - Save karein.
+
+-------------------------------------------------------------------
+STEP 3: TEST DEVICE ADD KAREIN (TAAKI ADS TURANT DIKHEIN)
+-------------------------------------------------------------------
+[Zaroori: App live nahi hai, isliye test device ke bina ads blank aayenge]
+
+1. Apne Android phone me jayein:
+   Settings -> Google -> Ads -> "Advertising ID" (GAID) copy karein.
+2. LevelPlay Dashboard me jayein:
+   Setup -> "Test Devices" -> "Add New Test Device".
+3. Phone ka GAID paste karein, Platform "Android" select karein.
+4. "Unity Ads" aur "ironSource" tick karke "Test Ads" on karein.
+5. Save karein.
+
+-------------------------------------------------------------------
+RESULT:
+Phone par app open karke check karein - Banner aur Interstitial ads
+turant load hona start ho jayenge!
+===================================================================

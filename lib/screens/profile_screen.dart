@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_strings.dart';
+import '../services/app_review_service.dart';
 import '../services/auth_service.dart';
 import '../services/profile_stats_service.dart';
 import '../services/sound_service.dart';
@@ -453,8 +454,8 @@ Legal Inquiries: quizsappliaction@gmail.com
 
   @override
   Widget build(BuildContext context) => DesignCanvas(
-    adTop: 710,
-    adBefore: 841,
+    adTop: 760,
+    adBefore: 890,
     color: Colors.white,
     topColor: Colors.white,
     bottomNav: QuizBottomNav(
@@ -659,14 +660,34 @@ Legal Inquiries: quizsappliaction@gmail.com
         ),
       ),
 
-      // Menu Option 5: Terms & Conditions (Opens in in-app Chrome Custom Tab)
+      // Menu Option 5: Rate & Review App
       at(
         34,
         544,
         344,
         42,
         AnimatedSection(
-          delay: const Duration(milliseconds: 220),
+          delay: const Duration(milliseconds: 210),
+          child: _MenuTile(
+            title: AppStrings.t('rate_review'),
+            onTap: () => AppReviewService.instance.requestReview(),
+            trailing: const Icon(
+              Icons.star_rounded,
+              size: 20,
+              color: Color(0xFFFFB800),
+            ),
+          ),
+        ),
+      ),
+
+      // Menu Option 6: Terms & Conditions (Opens in in-app Chrome Custom Tab)
+      at(
+        34,
+        594,
+        344,
+        42,
+        AnimatedSection(
+          delay: const Duration(milliseconds: 230),
           child: _MenuTile(
             title: AppStrings.t('terms_conditions'),
             onTap: _openTermsConditions,
@@ -678,10 +699,10 @@ Legal Inquiries: quizsappliaction@gmail.com
         ),
       ),
 
-      // Menu Option 6: Privacy Policy (Opens in in-app Chrome Custom Tab)
+      // Menu Option 7: Privacy Policy (Opens in in-app Chrome Custom Tab)
       at(
         34,
-        594,
+        644,
         344,
         42,
         AnimatedSection(
@@ -700,7 +721,7 @@ Legal Inquiries: quizsappliaction@gmail.com
       // Log Out Button
       at(
         116,
-        648,
+        698,
         180,
         44,
         AnimatedSection(

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
+import '../services/app_update_service.dart';
 import '../services/auth_service.dart';
 import '../services/profile_stats_service.dart';
 import '../widgets/design_widgets.dart';
@@ -25,6 +26,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadStats();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppUpdateService.instance.checkForUpdate();
+    });
   }
 
   Future<void> _loadStats() async {
