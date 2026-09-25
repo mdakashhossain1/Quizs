@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\OfferwallController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\QuizApiController;
 use App\Http\Controllers\Api\TargetController;
@@ -40,6 +41,8 @@ Route::get('/categories', [QuizApiController::class, 'categories']);
 Route::get('/categories/{id}/quizzes', [QuizApiController::class, 'quizzesByCategory']);
 Route::get('/quizzes/{id}', [QuizApiController::class, 'quizDetail']);
 
+Route::match(['get', 'post'], '/offerwall/callback/unity', [OfferwallController::class, 'callback']);
+
 // Protected User & Quiz Routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('auth')->group(function () {
@@ -58,6 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Blocked for accounts still on a temporary/admin-issued password until
     // they call /auth/force-change-password (see EnsurePasswordChanged).
     Route::middleware('password.changed')->group(function () {
+        Route::post('/offerwall/launch', [OfferwallController::class, 'launch'])->middleware('throttle:20,1');
         Route::prefix('auth')->group(function () {
             Route::post('/update-profile', [AuthController::class, 'updateProfile']);
             Route::post('/avatar', [AuthController::class, 'uploadAvatar']);
@@ -124,4 +128,3 @@ if (app()->environment('local')) {
         ]);
     });
 }
-

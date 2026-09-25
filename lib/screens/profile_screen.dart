@@ -459,13 +459,17 @@ Legal Inquiries: quizsappliaction@gmail.com
     color: Colors.white,
     topColor: Colors.white,
     bottomNav: QuizBottomNav(
-      initialIndex: 3,
+      initialIndex: 4,
       onTabSelected: (index) {
+        if (index == 2) {
+          Navigator.pushReplacementNamed(context, '/offerwall');
+          return;
+        }
         if (index == 0) {
           Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false);
         } else if (index == 1) {
           Navigator.pushReplacementNamed(context, '/categories');
-        } else if (index == 2) {
+        } else if (index == 3) {
           Navigator.pushReplacementNamed(context, '/attendance');
         }
       },

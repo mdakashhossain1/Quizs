@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\AccountDeletionController;
-use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -9,14 +8,16 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DatabaseMigrationController;
 use App\Http\Controllers\Admin\EmailSettingsController;
 use App\Http\Controllers\Admin\FirebaseSettingsController;
+use App\Http\Controllers\Admin\OfferwallController;
+use App\Http\Controllers\Admin\PushNotificationController;
 use App\Http\Controllers\Admin\QuestionController;
 use App\Http\Controllers\Admin\QuizAttemptController;
-use App\Http\Controllers\Admin\PushNotificationController;
 use App\Http\Controllers\Admin\QuizController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\TargetController;
 use App\Http\Controllers\Admin\TurnstileSettingsController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\LegalController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -84,6 +85,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     });
 
     Route::get('targets', [TargetController::class, 'index'])->name('targets.index');
+
+    Route::get('offerwall', [OfferwallController::class, 'index'])->name('offerwall.index');
 
     Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::post('attendance', [AttendanceController::class, 'store'])->name('attendance.store');

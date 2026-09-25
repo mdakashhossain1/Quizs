@@ -112,13 +112,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       bottomNav: QuizBottomNav(
         initialIndex: 0,
         onTabSelected: (index) {
+          if (index == 2) {
+            Navigator.pushNamed(context, '/offerwall');
+            return;
+          }
           if (index == 0) {
             Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
           } else if (index == 1) {
             Navigator.pushNamed(context, '/dashboard');
-          } else if (index == 2) {
-            Navigator.pushNamed(context, '/attendance');
           } else if (index == 3) {
+            Navigator.pushNamed(context, '/attendance');
+          } else if (index == 4) {
             Navigator.pushNamed(context, '/profile');
           }
         },

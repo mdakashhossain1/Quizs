@@ -25,6 +25,11 @@ class QuizBottomNav extends StatelessWidget {
       type: _NavIconType.dashboard,
     ),
     _NavItem(
+      label: AppStrings.t('offerwall'),
+      actionLabel: AppStrings.t('offerwall'),
+      type: _NavIconType.offerwall,
+    ),
+    _NavItem(
       label: AppStrings.t('attendance'),
       actionLabel: 'Attendance',
       type: _NavIconType.attendance,
@@ -49,9 +54,12 @@ class QuizBottomNav extends StatelessWidget {
           Navigator.pushNamed(context, '/categories');
           break;
         case 2:
-          Navigator.pushNamed(context, '/attendance');
+          Navigator.pushNamed(context, '/offerwall');
           break;
         case 3:
+          Navigator.pushNamed(context, '/attendance');
+          break;
+        case 4:
           Navigator.pushNamed(context, '/profile');
           break;
       }
@@ -172,11 +180,13 @@ class QuizBottomNav extends StatelessWidget {
         return _UserVector(color: color);
       case _NavIconType.attendance:
         return _AttendanceVector(color: color);
+      case _NavIconType.offerwall:
+        return Icon(Icons.explore_outlined, size: 22, color: color);
     }
   }
 }
 
-enum _NavIconType { home, dashboard, user, attendance }
+enum _NavIconType { home, dashboard, user, attendance, offerwall }
 
 class _NavItem {
   const _NavItem({

@@ -50,11 +50,15 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNav: QuizBottomNav(
         initialIndex: 0,
         onTabSelected: (index) {
+          if (index == 2) {
+            Navigator.pushNamed(context, '/offerwall');
+            return;
+          }
           if (index == 1) {
             Navigator.pushNamed(context, '/categories');
-          } else if (index == 2) {
-            Navigator.pushNamed(context, '/attendance');
           } else if (index == 3) {
+            Navigator.pushNamed(context, '/attendance');
+          } else if (index == 4) {
             Navigator.pushNamed(context, '/profile');
           }
         },

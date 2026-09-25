@@ -10,6 +10,7 @@ import 'screens/edit_profile_screen.dart';
 import 'screens/force_change_password_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/notifications_screen.dart';
+import 'screens/offerwall_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/question_screen.dart';
 import 'screens/results_screen.dart';
@@ -79,6 +80,7 @@ class QuizsApp extends StatelessWidget {
             '/' => _gateScreen(),
             '/dashboard' => const SelectionScreen(showBottomNav: true),
             '/notifications' => const NotificationsScreen(),
+            '/offerwall' => const OfferwallScreen(),
             '/categories' => settings.arguments is QuizCategory
                 ? SelectionScreen(
                     categoryId: (settings.arguments as QuizCategory).id,
@@ -132,6 +134,7 @@ class QuizsApp extends StatelessWidget {
               name == '/categories' ||
               name == '/dashboard' ||
               name == '/profile' ||
+              name == '/offerwall' ||
               name == '/attendance';
 
           if (isTabRoute) {

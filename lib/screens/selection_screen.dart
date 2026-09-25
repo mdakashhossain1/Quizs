@@ -138,12 +138,16 @@ class _SelectionScreenState extends State<SelectionScreen> {
           ? QuizBottomNav(
               initialIndex: 1,
               onTabSelected: (index) {
+                if (index == 2) {
+                  Navigator.pushReplacementNamed(context, '/offerwall');
+                  return;
+                }
                 if (index == 0) {
                   Navigator.pushNamedAndRemoveUntil(
                       context, '/', (route) => false);
-                } else if (index == 2) {
-                  Navigator.pushReplacementNamed(context, '/attendance');
                 } else if (index == 3) {
+                  Navigator.pushReplacementNamed(context, '/attendance');
+                } else if (index == 4) {
                   Navigator.pushReplacementNamed(context, '/profile');
                 }
               },

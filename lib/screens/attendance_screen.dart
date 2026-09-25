@@ -126,14 +126,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       adAfter: _headerCardY + _panelHeight + 16,
       color:   const Color(0xFFFCFAFE),
       bottomNav: QuizBottomNav(
-        initialIndex: 2,
+        initialIndex: 3,
         onTabSelected: (index) {
           switch (index) {
+            case 2:
+              Navigator.pushReplacementNamed(context, '/offerwall');
             case 0:
               Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false);
             case 1:
               Navigator.pushReplacementNamed(context, '/categories');
-            case 3:
+            case 4:
               Navigator.pushReplacementNamed(context, '/profile');
           }
         },

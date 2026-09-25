@@ -39,6 +39,15 @@ class AppStrings {
 
   static const Map<String, Map<String, String>> _localizedValues = {
     'en': {
+      'offerwall': 'Offerwall',
+      'offerwall_opening': 'Opening Offerwall…',
+      'offerwall_browse': 'Browse offers from our partner.',
+      'offerwall_open': 'Open Offerwall',
+      'offerwall_unavailable': 'Offerwall is currently unavailable. Please try again later.',
+      'offerwall_failed': 'Could not open Offerwall. Check your connection and try again.',
+      'offerwall_signin_required': 'Please sign in again to open Offerwall.',
+      'offerwall_password_required': 'Please update your password to continue.',
+      'offerwall_continue': 'Continue',
       // Common & Navigation
       'home': 'Home',
       'category': 'Category',
@@ -208,6 +217,15 @@ class AppStrings {
       'retry': 'Retry',
     },
     'hi': {
+      'offerwall': 'ऑफ़रवॉल',
+      'offerwall_opening': 'ऑफ़रवॉल खुल रहा है…',
+      'offerwall_browse': 'हमारे पार्टनर के ऑफ़र देखें।',
+      'offerwall_open': 'ऑफ़रवॉल खोलें',
+      'offerwall_unavailable': 'ऑफ़रवॉल अभी उपलब्ध नहीं है। कृपया बाद में प्रयास करें।',
+      'offerwall_failed': 'ऑफ़रवॉल नहीं खुल सका। अपना इंटरनेट कनेक्शन जाँचें और फिर प्रयास करें।',
+      'offerwall_signin_required': 'ऑफ़रवॉल खोलने के लिए फिर से साइन इन करें।',
+      'offerwall_password_required': 'आगे बढ़ने के लिए अपना पासवर्ड बदलें।',
+      'offerwall_continue': 'आगे बढ़ें',
       // Common & Navigation
       'home': 'होम',
       'category': 'श्रेणी',
