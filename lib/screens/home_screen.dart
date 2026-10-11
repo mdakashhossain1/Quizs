@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../l10n/app_strings.dart';
 import '../services/app_update_service.dart';
@@ -44,8 +45,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: AppLanguage.instance,
     builder: (context, _) => DesignCanvas(
-      adTop: 776,
-      adBefore: 841,
+      adTop: 890,
+      adAfter: 875,
       color: const Color(0xFFFCFAFE),
       bottomNav: QuizBottomNav(
         initialIndex: 0,
@@ -223,6 +224,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         action(context, 'Join a Quiz', '/categories', 37, 576, 337, 155),
+        at(
+          37,
+          745,
+          337,
+          118,
+          const AnimatedSection(
+            delay: Duration(milliseconds: 160),
+            child: _HomeOfferwallCard(),
+          ),
+        ),
+        action(context, 'PubScale OfferWall', '/offerwall', 37, 745, 337, 118),
       ],
     ),
   );
@@ -499,6 +511,143 @@ class _DailyChallenge extends StatelessWidget {
           ),
         ),
       ),
+    ),
+  );
+}
+
+class _HomeOfferwallCard extends StatelessWidget {
+  const _HomeOfferwallCard();
+
+  @override
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(16),
+    child: Stack(
+      children: [
+        const Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF28024D), Color(0xFF5B1194), Color(0xFF135A52)],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          right: -10,
+          top: -15,
+          child: Opacity(
+            opacity: 0.14,
+            child: SvgPicture.asset(
+              'assets/figma/pubscale_logo_white.svg',
+              width: 140,
+              height: 140,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        SvgPicture.asset(
+                          'assets/figma/pubscale_logo_white.svg',
+                          height: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF5FC3BA),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'NEW',
+                            style: TextStyle(
+                              color: Color(0xFF0F2623),
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      AppStrings.t('offerwall'),
+                      style: const TextStyle(
+                        fontFamily: 'DaysOne',
+                        fontSize: 17,
+                        color: Colors.white,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      AppLanguage.instance.isHindi
+                          ? 'टास्क पूरे करें और रिवॉर्ड्स जीतें'
+                          : 'Complete tasks & earn rewards',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 11,
+                        color: Colors.white.withValues(alpha: 0.85),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 9,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF5FC3BA),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x33000000),
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      AppLanguage.instance.isHindi ? 'खोलें' : 'Open',
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        color: Color(0xFF0F2623),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 16,
+                      color: Color(0xFF0F2623),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     ),
   );
 }

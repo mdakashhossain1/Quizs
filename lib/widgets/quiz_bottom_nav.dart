@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../l10n/app_strings.dart';
 import 'design_widgets.dart';
@@ -181,7 +182,12 @@ class QuizBottomNav extends StatelessWidget {
       case _NavIconType.attendance:
         return _AttendanceVector(color: color);
       case _NavIconType.offerwall:
-        return Icon(Icons.explore_outlined, size: 22, color: color);
+        return SvgPicture.asset(
+          'assets/figma/pubscale_logo.svg',
+          width: 26,
+          height: 14,
+          colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+        );
     }
   }
 }

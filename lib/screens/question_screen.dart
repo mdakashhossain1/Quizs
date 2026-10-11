@@ -227,7 +227,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
     }
 
     _answeredInSessionCount++;
-    if (_answeredInSessionCount % 2 == 0) {
+    if (_answeredInSessionCount % 7 == 0) {
       IronSourceService.instance.showInterstitialAd(
         onComplete: () {
           if (!mounted) return;

@@ -84,3 +84,11 @@
 -dontwarn javax.annotation.**
 -dontwarn javax.inject.**
 -dontwarn com.google.android.play.core.**
+-dontwarn com.google.j2objc.annotations.**
+-dontwarn com.google.errorprone.annotations.**
+
+# ============================================================
+# PubScale OfferWall SDK
+# ============================================================
+-keep class com.pubscale.** { *; }
+-dontwarn com.pubscale.**

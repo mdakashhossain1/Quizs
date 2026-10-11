@@ -10,6 +10,7 @@ import 'services/auth_service.dart';
 import 'services/push_notification_service.dart';
 import 'services/app_update_service.dart';
 import 'services/iron_source_service.dart';
+import 'services/pubscale_offerwall_service.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -34,6 +35,7 @@ Future<void> main() async {
   ActivityService.instance.initialize();
   PushNotificationService.instance.initialize();
   IronSourceService.instance.initialize();
+  PubscaleOfferwallService.instance.initialize();
   runApp(const QuizsApp());
   WidgetsBinding.instance.addPostFrameCallback((_) {
     AppUpdateService.instance.checkForUpdate();

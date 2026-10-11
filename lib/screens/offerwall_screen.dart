@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../l10n/app_strings.dart';
-import '../services/api_client.dart';
 import '../services/offerwall_service.dart';
+import '../services/pubscale_offerwall_service.dart';
 import '../widgets/design_widgets.dart';
 import '../widgets/quiz_bottom_nav.dart';
 
@@ -37,22 +38,15 @@ class _OfferwallScreenState extends State<OfferwallScreen> {
       await (widget.service ?? OfferwallService.instance).open(
         shouldOpen: () => mounted,
       );
-    } on ApiException catch (error) {
+    } catch (e) {
       if (!mounted) return;
-      if (error.statusCode == 401) {
-        _errorKey = 'offerwall_signin_required';
-        _authRoute = '/signin';
-      } else if (error.body?['must_change_password'] == true) {
-        _errorKey = 'offerwall_password_required';
-        _authRoute = '/force-change-password';
+      final message = e.toString();
+      if (message.contains('not initialized') ||
+          message.contains('Initialization failed')) {
+        _errorKey = 'offerwall_unavailable';
       } else {
-        _errorKey = error.statusCode == 503
-            ? 'offerwall_unavailable'
-            : 'offerwall_failed';
+        _errorKey = 'offerwall_failed';
       }
-    } catch (_) {
-      if (!mounted) return;
-      _errorKey = 'offerwall_failed';
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -92,20 +86,33 @@ class _OfferwallScreenState extends State<OfferwallScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.explore_outlined,
-                    size: 64,
-                    color: QuizColors.purple,
+                  SvgPicture.asset(
+                    'assets/figma/pubscale_logo.svg',
+                    width: 90,
+                    height: 42,
                   ),
                   const SizedBox(height: 24),
-                  Text(
-                    AppStrings.t(
-                      _loading
-                          ? 'offerwall_opening'
-                          : _errorKey ?? 'offerwall_browse',
-                    ),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 18, height: 1.5),
+                  // Show SDK initialization status from PubScale
+                  ListenableBuilder(
+                    listenable: PubscaleOfferwallService.instance,
+                    builder: (context, _) {
+                      final pubscale = PubscaleOfferwallService.instance;
+                      String statusText;
+                      if (_loading || pubscale.isInitializing) {
+                        statusText = AppStrings.t('offerwall_opening');
+                      } else if (_errorKey != null) {
+                        statusText = AppStrings.t(_errorKey!);
+                      } else if (pubscale.lastError != null) {
+                        statusText = AppStrings.t('offerwall_unavailable');
+                      } else {
+                        statusText = AppStrings.t('offerwall_browse');
+                      }
+                      return Text(
+                        statusText,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 18, height: 1.5),
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
                   if (_loading)

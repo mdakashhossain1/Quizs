@@ -25,6 +25,7 @@ dependencies:
   audioplayers: ^6.8.1
   in_app_update: ^4.2.5
   in_app_review: ^2.0.9
+  pubscale_offerwall_plugin: ^0.0.4
 
 dev_dependencies:
   flutter_test:

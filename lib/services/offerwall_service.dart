@@ -1,38 +1,20 @@
-import 'package:url_launcher/url_launcher.dart';
+import 'pubscale_offerwall_service.dart';
 
-import 'api_client.dart';
-
+/// Orchestrates offerwall access for the application.
+///
+/// Delegates to [PubscaleOfferwallService] for the native PubScale SDK
+/// integration. The previous URL-launcher approach has been replaced.
 class OfferwallService {
-  OfferwallService({Future<bool> Function(Uri)? launcher})
-    : _launcher = launcher ?? _launch;
+  OfferwallService();
 
   static final instance = OfferwallService();
-  final Future<bool> Function(Uri) _launcher;
 
-  static Future<bool> _launch(Uri uri) => launchUrl(
-    uri,
-    mode: LaunchMode.inAppBrowserView,
-    webOnlyWindowName: '_self',
-  );
-
+  /// Opens the PubScale OfferWall.
+  ///
+  /// [shouldOpen] – optional guard callback; if it returns `false` the
+  /// offerwall will not be shown (e.g. the widget is no longer mounted).
   Future<void> open({bool Function()? shouldOpen}) async {
-    final data = await ApiClient.instance.post('/offerwall/launch');
-    final rawUrl = data['url'];
-    final uri = rawUrl is String ? Uri.tryParse(rawUrl) : null;
-    if (uri == null ||
-        uri.scheme != 'https' ||
-        uri.host != 'rewards.unity.com' ||
-        uri.userInfo.isNotEmpty ||
-        uri.port != 443 ||
-        !uri.path.startsWith('/owp/web/link/')) {
-      throw ApiException(
-        'Offerwall is currently unavailable.',
-        statusCode: 503,
-      );
-    }
     if (shouldOpen != null && !shouldOpen()) return;
-    if (!await _launcher(uri)) {
-      throw ApiException('Could not open Offerwall. Please try again.');
-    }
+    await PubscaleOfferwallService.instance.openOfferwall();
   }
 }
