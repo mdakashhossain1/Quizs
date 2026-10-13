@@ -14,6 +14,7 @@ import 'package:quizs/widgets/quiz_bottom_nav.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  final tapjoyButton = find.image(const AssetImage('assets/figma/tapjoy_logo.png'));
   const url = 'https://rewards.unity.com/owp/web/link/test-key/u/42';
 
   setUp(() {
@@ -105,14 +106,14 @@ void main() {
     );
     expect(attempts, 0);
     expect(find.text(AppStrings.t('offerwall_choose')), findsOneWidget);
-    await tester.tap(find.text('Tapjoy'));
+    await tester.tap(tapjoyButton);
     await tester.pump();
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(find.text(AppStrings.t('offerwall_opening')), findsOneWidget);
     pending.complete(http.Response('{}', 503));
     await tester.pumpAndSettle();
     expect(find.text(AppStrings.t('offerwall_unavailable')), findsOneWidget);
-    await tester.tap(find.text('Tapjoy'));
+    await tester.tap(tapjoyButton);
     await tester.pumpAndSettle();
     expect(attempts, 2);
     expect(find.text(AppStrings.t('offerwall_choose')), findsOneWidget);
@@ -131,7 +132,7 @@ void main() {
         },
       ),
     );
-    await tester.tap(find.text('Tapjoy'));
+    await tester.tap(tapjoyButton);
     await tester.pumpAndSettle();
     expect(
       find.text(AppStrings.t('offerwall_signin_required')),
@@ -156,7 +157,7 @@ void main() {
         },
       ),
     );
-    await tester.tap(find.text('Tapjoy'));
+    await tester.tap(tapjoyButton);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
@@ -179,7 +180,7 @@ void main() {
         ),
       ),
     );
-    await tester.tap(find.text('Tapjoy'));
+    await tester.tap(tapjoyButton);
     await tester.pump();
     await tester.pumpWidget(const SizedBox());
     pending.complete(http.Response(jsonEncode({'url': url}), 200));
@@ -201,6 +202,10 @@ void main() {
       );
       await tester.pumpWidget(
         MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(disableAnimations: true),
+            child: child!,
+          ),
           home: const HomeScreen(),
           routes: {
             '/offerwall': (_) =>

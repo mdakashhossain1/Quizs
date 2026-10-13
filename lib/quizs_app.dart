@@ -80,7 +80,11 @@ class QuizsApp extends StatelessWidget {
             '/' => _gateScreen(),
             '/dashboard' => const SelectionScreen(showBottomNav: true),
             '/notifications' => const NotificationsScreen(),
-            '/offerwall' => const OfferwallScreen(),
+            '/offerwall' => OfferwallScreen(
+                initialProvider: settings.arguments is OfferwallProvider
+                    ? settings.arguments as OfferwallProvider
+                    : null,
+              ),
             '/categories' => settings.arguments is QuizCategory
                 ? SelectionScreen(
                     categoryId: (settings.arguments as QuizCategory).id,

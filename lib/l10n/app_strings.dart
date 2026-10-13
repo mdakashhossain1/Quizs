@@ -39,7 +39,7 @@ class AppStrings {
 
   static const Map<String, Map<String, String>> _localizedValues = {
     'en': {
-      'offerwall': 'Offerwall',
+      'offerwall': 'Offer Wall',
       'offerwall_opening': 'Opening Offerwall…',
       'offerwall_browse': 'Browse offers from our partner.',
       'offerwall_choose': 'Choose an offer partner to browse offers.',

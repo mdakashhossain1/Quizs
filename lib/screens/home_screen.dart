@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../l10n/app_strings.dart';
+import '../screens/offerwall_screen.dart';
 import '../services/app_update_service.dart';
 import '../services/auth_service.dart';
 import '../services/profile_stats_service.dart';
@@ -224,17 +225,34 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         action(context, 'Join a Quiz', '/categories', 37, 576, 337, 155),
-        at(
-          37,
-          745,
-          337,
-          118,
-          const AnimatedSection(
-            delay: Duration(milliseconds: 160),
-            child: _HomeOfferwallCard(),
+        for (final (x, provider) in const [
+          (37.0, OfferwallProvider.pubscale),
+          (212.0, OfferwallProvider.unity),
+        ]) ...[
+          at(
+            x,
+            745,
+            162,
+            118,
+            AnimatedSection(
+              delay: const Duration(milliseconds: 160),
+              child: _HomeOfferwallCard(provider: provider),
+            ),
           ),
-        ),
-        action(context, 'PubScale OfferWall', '/offerwall', 37, 745, 337, 118),
+          at(
+            x,
+            745,
+            162,
+            118,
+            DesignAction(
+              label:
+                  '${_HomeOfferwallCard.brandName(provider)} ${AppStrings.t('offerwall')}',
+              onTap: () =>
+                  Navigator.of(context)
+                      .pushNamed('/offerwall', arguments: provider),
+            ),
+          ),
+        ],
       ],
     ),
   );
@@ -516,138 +534,208 @@ class _DailyChallenge extends StatelessWidget {
 }
 
 class _HomeOfferwallCard extends StatelessWidget {
-  const _HomeOfferwallCard();
+  const _HomeOfferwallCard({required this.provider});
+
+  final OfferwallProvider provider;
+
+  static String brandName(OfferwallProvider provider) => switch (provider) {
+    OfferwallProvider.pubscale => 'PubScale',
+    OfferwallProvider.unity => 'Tapjoy',
+  };
+
+  Widget _logo({required double height, double? width}) => switch (provider) {
+    OfferwallProvider.pubscale => SvgPicture.asset(
+      'assets/figma/pubscale_logo_white.svg',
+      width: width,
+      height: height,
+    ),
+    OfferwallProvider.unity => Image.asset(
+      'assets/figma/tapjoy_logo_white.png',
+      width: width,
+      height: height,
+    ),
+  };
 
   @override
-  Widget build(BuildContext context) => ClipRRect(
-    borderRadius: BorderRadius.circular(16),
-    child: Stack(
-      children: [
-        const Positioned.fill(
-          child: DecoratedBox(
+  Widget build(BuildContext context) {
+    final isTapjoy = provider == OfferwallProvider.unity;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isTapjoy
+                      ? const [
+                          Color(0xFF1B1530),
+                          Color(0xFF3A1673),
+                          Color(0xFF7A2E8E),
+                        ]
+                      : const [
+                          Color(0xFF28024D),
+                          Color(0xFF5B1194),
+                          Color(0xFF135A52),
+                        ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: -18,
+            top: -12,
+            child: Opacity(opacity: 0.12, child: _logo(width: 96, height: 96)),
+          ),
+          if (isTapjoy)
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF5FC3BA),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'NEW',
+                  style: TextStyle(
+                    color: Color(0xFF0F2623),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _logo(height: 20),
+                const SizedBox(height: 6),
+                Text(
+                  AppStrings.t('offerwall'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'DaysOne',
+                    fontSize: 15,
+                    color: Colors.white,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF5FC3BA),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x33000000),
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        AppLanguage.instance.isHindi ? 'खोलें' : 'Open',
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                          color: Color(0xFF0F2623),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 14,
+                        color: Color(0xFF0F2623),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned.fill(child: _ShineSweep(phase: isTapjoy ? 0.5 : 0)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ShineSweep extends StatefulWidget {
+  const _ShineSweep({this.phase = 0});
+
+  final double phase;
+
+  @override
+  State<_ShineSweep> createState() => _ShineSweepState();
+}
+
+class _ShineSweepState extends State<_ShineSweep>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 4200),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context)) return const SizedBox.shrink();
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final t = (_controller.value + widget.phase) % 1;
+          const sweepPortion = 0.5;
+          if (t > sweepPortion) return const SizedBox.shrink();
+          final progress = Curves.easeInOut.transform(t / sweepPortion);
+          return DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF28024D), Color(0xFF5B1194), Color(0xFF135A52)],
+                colors: [
+                  Colors.white.withValues(alpha: 0),
+                  Colors.white.withValues(alpha: 0.22),
+                  Colors.white.withValues(alpha: 0),
+                ],
+                stops: const [0.38, 0.5, 0.62],
+                transform: _SlideGradient(progress),
               ),
             ),
-          ),
-        ),
-        Positioned(
-          right: -10,
-          top: -15,
-          child: Opacity(
-            opacity: 0.14,
-            child: SvgPicture.asset(
-              'assets/figma/pubscale_logo_white.svg',
-              width: 140,
-              height: 140,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Row(
-                      children: [
-                        SvgPicture.asset(
-                          'assets/figma/pubscale_logo_white.svg',
-                          height: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF5FC3BA),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Text(
-                            'NEW',
-                            style: TextStyle(
-                              color: Color(0xFF0F2623),
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      AppStrings.t('offerwall'),
-                      style: const TextStyle(
-                        fontFamily: 'DaysOne',
-                        fontSize: 17,
-                        color: Colors.white,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      AppLanguage.instance.isHindi
-                          ? 'टास्क पूरे करें और रिवॉर्ड्स जीतें'
-                          : 'Complete tasks & earn rewards',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 11,
-                        color: Colors.white.withValues(alpha: 0.85),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 9,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF5FC3BA),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x33000000),
-                      blurRadius: 6,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      AppLanguage.instance.isHindi ? 'खोलें' : 'Open',
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        color: Color(0xFF0F2623),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 16,
-                      color: Color(0xFF0F2623),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _SlideGradient extends GradientTransform {
+  const _SlideGradient(this.progress);
+
+  final double progress;
+
+  @override
+  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) =>
+      Matrix4.translationValues(bounds.width * (2.4 * progress - 1.2), 0, 0);
 }

@@ -12,10 +12,16 @@ import '../widgets/quiz_bottom_nav.dart';
 enum OfferwallProvider { pubscale, unity }
 
 class OfferwallScreen extends StatefulWidget {
-  const OfferwallScreen({super.key, this.service, this.unityService});
+  const OfferwallScreen({
+    super.key,
+    this.service,
+    this.unityService,
+    this.initialProvider,
+  });
 
   final OfferwallService? service;
   final UnityOfferwallService? unityService;
+  final OfferwallProvider? initialProvider;
 
   @override
   State<OfferwallScreen> createState() => _OfferwallScreenState();
@@ -25,6 +31,17 @@ class _OfferwallScreenState extends State<OfferwallScreen> {
   OfferwallProvider? _loading;
   String? _errorKey;
   String? _authRoute;
+
+  @override
+  void initState() {
+    super.initState();
+    final provider = widget.initialProvider;
+    if (provider != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _open(provider);
+      });
+    }
+  }
 
   Future<void> _open(OfferwallProvider provider) async {
     if (_loading != null) return;
@@ -135,13 +152,10 @@ class _OfferwallScreenState extends State<OfferwallScreen> {
                   const SizedBox(height: 14),
                   _ProviderButton(
                     label: 'Tapjoy',
-                    leading: const Text(
-                      'Tapjoy',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: QuizColors.purple,
-                      ),
+                    leading: Image.asset(
+                      'assets/figma/tapjoy_logo.png',
+                      width: 90,
+                      height: 43,
                     ),
                     loading: _loading == OfferwallProvider.unity,
                     onPressed: _loading == null
