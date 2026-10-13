@@ -549,7 +549,7 @@
         </aside>
         @endif
 
-        <main class="legal-card @unlessSection('toc') full-width @endunless">
+        <main class="legal-card @sectionMissing('toc') full-width @endif">
             @yield('content')
         </main>
     </div>

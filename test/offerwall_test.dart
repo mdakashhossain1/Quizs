@@ -9,7 +9,7 @@ import 'package:quizs/l10n/app_strings.dart';
 import 'package:quizs/screens/home_screen.dart';
 import 'package:quizs/screens/offerwall_screen.dart';
 import 'package:quizs/services/api_client.dart';
-import 'package:quizs/services/offerwall_service.dart';
+import 'package:quizs/services/unity_offerwall_service.dart';
 import 'package:quizs/widgets/quiz_bottom_nav.dart';
 
 void main() {
@@ -36,7 +36,7 @@ void main() {
         requests.add(request);
         return http.Response(jsonEncode({'url': url}), 200);
       });
-      await OfferwallService(
+      await UnityOfferwallService(
         launcher: (uri) async {
           opened = uri;
           return true;
@@ -63,7 +63,7 @@ void main() {
         (_) async => http.Response(jsonEncode({'url': destination}), 200),
       );
       await expectLater(
-        OfferwallService(
+        UnityOfferwallService(
           launcher: (_) async {
             fail('Invalid URLs must not be opened.');
           },
@@ -77,7 +77,7 @@ void main() {
     ApiClient.instance.debugClient = MockClient((_) async {
       throw http.ClientException('offline');
     });
-    final service = OfferwallService(launcher: (_) async => false);
+    final service = UnityOfferwallService(launcher: (_) async => false);
     await expectLater(service.open(), throwsA(isA<ApiException>()));
     ApiClient.instance.debugClient = MockClient(
       (_) async => http.Response(jsonEncode({'url': url}), 200),
@@ -99,19 +99,23 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: OfferwallScreen(
-          service: OfferwallService(launcher: (_) async => true),
+          unityService: UnityOfferwallService(launcher: (_) async => true),
         ),
       ),
     );
+    expect(attempts, 0);
+    expect(find.text(AppStrings.t('offerwall_choose')), findsOneWidget);
+    await tester.tap(find.text('Tapjoy'));
+    await tester.pump();
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(find.byType(FilledButton), findsNothing);
+    expect(find.text(AppStrings.t('offerwall_opening')), findsOneWidget);
     pending.complete(http.Response('{}', 503));
     await tester.pumpAndSettle();
     expect(find.text(AppStrings.t('offerwall_unavailable')), findsOneWidget);
-    await tester.tap(find.text('Retry'));
+    await tester.tap(find.text('Tapjoy'));
     await tester.pumpAndSettle();
     expect(attempts, 2);
-    expect(find.text('Open Offerwall'), findsOneWidget);
+    expect(find.text(AppStrings.t('offerwall_choose')), findsOneWidget);
     expect(find.textContaining('completed'), findsNothing);
   });
 
@@ -127,6 +131,7 @@ void main() {
         },
       ),
     );
+    await tester.tap(find.text('Tapjoy'));
     await tester.pumpAndSettle();
     expect(
       find.text(AppStrings.t('offerwall_signin_required')),
@@ -151,6 +156,7 @@ void main() {
         },
       ),
     );
+    await tester.tap(find.text('Tapjoy'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
@@ -165,7 +171,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: OfferwallScreen(
-          service: OfferwallService(
+          unityService: UnityOfferwallService(
             launcher: (_) async {
               fail('A closed screen must not launch the browser.');
             },
@@ -173,6 +179,8 @@ void main() {
         ),
       ),
     );
+    await tester.tap(find.text('Tapjoy'));
+    await tester.pump();
     await tester.pumpWidget(const SizedBox());
     pending.complete(http.Response(jsonEncode({'url': url}), 200));
     await tester.pumpAndSettle();

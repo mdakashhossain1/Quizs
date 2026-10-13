@@ -2,59 +2,80 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../l10n/app_strings.dart';
+import '../services/api_client.dart';
 import '../services/offerwall_service.dart';
 import '../services/pubscale_offerwall_service.dart';
+import '../services/unity_offerwall_service.dart';
 import '../widgets/design_widgets.dart';
 import '../widgets/quiz_bottom_nav.dart';
 
+enum OfferwallProvider { pubscale, unity }
+
 class OfferwallScreen extends StatefulWidget {
-  const OfferwallScreen({super.key, this.service});
+  const OfferwallScreen({super.key, this.service, this.unityService});
 
   final OfferwallService? service;
+  final UnityOfferwallService? unityService;
 
   @override
   State<OfferwallScreen> createState() => _OfferwallScreenState();
 }
 
 class _OfferwallScreenState extends State<OfferwallScreen> {
-  bool _loading = false;
+  OfferwallProvider? _loading;
   String? _errorKey;
   String? _authRoute;
 
-  @override
-  void initState() {
-    super.initState();
-    _open();
-  }
-
-  Future<void> _open() async {
-    if (_loading) return;
+  Future<void> _open(OfferwallProvider provider) async {
+    if (_loading != null) return;
     setState(() {
-      _loading = true;
+      _loading = provider;
       _errorKey = null;
       _authRoute = null;
     });
     try {
-      await (widget.service ?? OfferwallService.instance).open(
-        shouldOpen: () => mounted,
-      );
+      switch (provider) {
+        case OfferwallProvider.pubscale:
+          await (widget.service ?? OfferwallService.instance).open(
+            shouldOpen: () => mounted,
+          );
+        case OfferwallProvider.unity:
+          await (widget.unityService ?? UnityOfferwallService.instance).open(
+            shouldOpen: () => mounted,
+          );
+      }
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      if (error.statusCode == 401) {
+        _errorKey = 'offerwall_signin_required';
+        _authRoute = '/signin';
+      } else if (error.body?['must_change_password'] == true) {
+        _errorKey = 'offerwall_password_required';
+        _authRoute = '/force-change-password';
+      } else {
+        _errorKey = error.statusCode == 503
+            ? 'offerwall_unavailable'
+            : 'offerwall_failed';
+      }
     } catch (e) {
       if (!mounted) return;
       final message = e.toString();
-      if (message.contains('not initialized') ||
-          message.contains('Initialization failed')) {
-        _errorKey = 'offerwall_unavailable';
-      } else {
-        _errorKey = 'offerwall_failed';
-      }
+      _errorKey =
+          message.contains('not initialized') ||
+              message.contains('Initialization failed')
+          ? 'offerwall_unavailable'
+          : 'offerwall_failed';
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) setState(() => _loading = null);
     }
   }
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: AppLanguage.instance,
+    listenable: Listenable.merge([
+      AppLanguage.instance,
+      PubscaleOfferwallService.instance,
+    ]),
     builder: (context, _) => Scaffold(
       backgroundColor: const Color(0xFFFCFAFE),
       appBar: AppBar(
@@ -85,60 +106,105 @@ class _OfferwallScreenState extends State<OfferwallScreen> {
               constraints: const BoxConstraints(maxWidth: 360),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SvgPicture.asset(
-                    'assets/figma/pubscale_logo.svg',
-                    width: 90,
-                    height: 42,
+                  Text(
+                    AppStrings.t(
+                      _loading != null
+                          ? 'offerwall_opening'
+                          : _errorKey ?? 'offerwall_choose',
+                    ),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18, height: 1.5),
                   ),
                   const SizedBox(height: 24),
-                  // Show SDK initialization status from PubScale
-                  ListenableBuilder(
-                    listenable: PubscaleOfferwallService.instance,
-                    builder: (context, _) {
-                      final pubscale = PubscaleOfferwallService.instance;
-                      String statusText;
-                      if (_loading || pubscale.isInitializing) {
-                        statusText = AppStrings.t('offerwall_opening');
-                      } else if (_errorKey != null) {
-                        statusText = AppStrings.t(_errorKey!);
-                      } else if (pubscale.lastError != null) {
-                        statusText = AppStrings.t('offerwall_unavailable');
-                      } else {
-                        statusText = AppStrings.t('offerwall_browse');
-                      }
-                      return Text(
-                        statusText,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 18, height: 1.5),
-                      );
-                    },
+                  _ProviderButton(
+                    label: 'PubScale',
+                    leading: SvgPicture.asset(
+                      'assets/figma/pubscale_logo.svg',
+                      width: 90,
+                      height: 42,
+                    ),
+                    loading:
+                        _loading == OfferwallProvider.pubscale ||
+                        PubscaleOfferwallService.instance.isInitializing,
+                    onPressed: _loading == null
+                        ? () => _open(OfferwallProvider.pubscale)
+                        : null,
                   ),
-                  const SizedBox(height: 24),
-                  if (_loading)
-                    CircularProgressIndicator(
-                      semanticsLabel: AppStrings.t('offerwall_opening'),
-                    )
-                  else
-                    FilledButton(
-                      onPressed: _authRoute != null
-                          ? () => Navigator.of(context).pushNamed(_authRoute!)
-                          : _open,
-                      child: Text(
-                        AppStrings.t(
-                          _authRoute != null
-                              ? 'offerwall_continue'
-                              : _errorKey != null
-                              ? 'retry'
-                              : 'offerwall_open',
-                        ),
+                  const SizedBox(height: 14),
+                  _ProviderButton(
+                    label: 'Tapjoy',
+                    leading: const Text(
+                      'Tapjoy',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: QuizColors.purple,
                       ),
                     ),
+                    loading: _loading == OfferwallProvider.unity,
+                    onPressed: _loading == null
+                        ? () => _open(OfferwallProvider.unity)
+                        : null,
+                  ),
+                  if (_authRoute != null) ...[
+                    const SizedBox(height: 24),
+                    FilledButton(
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed(_authRoute!),
+                      child: Text(AppStrings.t('offerwall_continue')),
+                    ),
+                  ],
                 ],
               ),
             ),
           ),
         ),
+      ),
+    ),
+  );
+}
+
+class _ProviderButton extends StatelessWidget {
+  const _ProviderButton({
+    required this.label,
+    required this.leading,
+    required this.loading,
+    required this.onPressed,
+  });
+
+  final String label;
+  final Widget leading;
+  final bool loading;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: '${AppStrings.t('offerwall_open')}: $label',
+    excludeSemantics: true,
+    child: OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size.fromHeight(72),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        backgroundColor: Colors.white,
+        side: const BorderSide(color: Color(0xFFE4D6F5)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      child: Row(
+        children: [
+          leading,
+          const Spacer(),
+          if (loading)
+            const SizedBox.square(
+              dimension: 22,
+              child: CircularProgressIndicator(strokeWidth: 2.5),
+            )
+          else
+            const Icon(Icons.chevron_right, color: QuizColors.purple),
+        ],
       ),
     ),
   );
