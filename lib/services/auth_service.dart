@@ -298,16 +298,21 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  String? lastGoogleError;
+
   Future<bool> signInWithGoogle() async {
+    lastGoogleError = null;
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
+        lastGoogleError = 'Sign-in was cancelled';
         return false;
       }
 
       if (Firebase.apps.isEmpty) {
         // Without Firebase there is no ID token to verify server-side, so we
         // cannot safely establish a backend session for this sign-in.
+        lastGoogleError = 'Firebase is not initialised';
         return false;
       }
 
@@ -333,9 +338,11 @@ class AuthService extends ChangeNotifier {
         }
       } catch (e) {
         debugPrint('FirebaseAuth credential sign-in note: $e');
+        lastGoogleError = 'Firebase: $e';
       }
 
       if (firebaseIdToken == null) {
+        lastGoogleError ??= 'Firebase returned no ID token';
         return false;
       }
 
@@ -351,6 +358,7 @@ class AuthService extends ChangeNotifier {
       return true;
     } catch (e) {
       debugPrint('Google Sign-In note: $e');
+      lastGoogleError = 'Google: $e';
       return false;
     }
   }

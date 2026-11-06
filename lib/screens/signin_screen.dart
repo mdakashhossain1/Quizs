@@ -91,10 +91,11 @@ class _SignInScreenState extends State<SignInScreen> {
     } else if (mounted) {
       setState(() => _isGoogleLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Google Sign-In was not completed'),
+        SnackBar(
+          content: Text(AuthService.instance.lastGoogleError ??
+              'Google Sign-In was not completed'),
           backgroundColor: QuizColors.purple,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 8),
         ),
       );
     }

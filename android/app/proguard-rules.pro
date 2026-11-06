@@ -21,6 +21,9 @@
 # ============================================================
 -dontwarn com.google.firebase.**
 -dontwarn com.google.android.gms.**
+-keep class * implements com.google.firebase.components.ComponentRegistrar { <init>(); }
+-keep class * implements com.google.firebase.components.ComponentRegistrar
+-keep class com.google.firebase.provider.FirebaseInitProvider
 
 # Firebase Crashlytics
 -keepattributes SourceFile,LineNumberTable
