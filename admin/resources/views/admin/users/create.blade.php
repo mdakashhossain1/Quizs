@@ -12,7 +12,7 @@
     </div>
 
     <div class="bg-white border border-gray-200 rounded-lg p-6">
-        <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-5">
+        <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-5" onsubmit="this.querySelector('[type=submit]').disabled = true">
             @csrf
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">

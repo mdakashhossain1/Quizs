@@ -8,6 +8,7 @@ use App\Mail\TargetAssignedMail;
 use App\Models\User;
 use App\Services\ProfileStatsService;
 use App\Services\TargetService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -106,18 +107,22 @@ class UserController extends Controller
 
         $temporaryPassword = Str::password(12);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'login_id' => $validated['login_id'] ?: null,
-            'role' => $validated['role'],
-            'password' => Hash::make($temporaryPassword),
-            'must_change_password' => true,
-            'email_verified_at' => now(),
-            'streak' => 0,
-            'score' => 0,
-            'is_active' => true,
-        ]);
+        try {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'login_id' => $validated['login_id'] ?: null,
+                'role' => $validated['role'],
+                'password' => Hash::make($temporaryPassword),
+                'must_change_password' => true,
+                'email_verified_at' => now(),
+                'streak' => 0,
+                'score' => 0,
+                'is_active' => true,
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            return redirect()->route('admin.users.index')->with('error', 'That email or login ID already exists. The user may have just been created by a double submit.');
+        }
 
         $emailQueued = $this->sendAccountMail($user, $temporaryPassword);
 
