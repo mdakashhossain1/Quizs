@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -364,6 +365,7 @@ class AuthController extends Controller
     {
         $apiKey = config('services.firebase.api_key');
         if (! $apiKey) {
+            Log::error('Google login failed: FIREBASE_API_KEY is not set');
             return null;
         }
 
@@ -373,11 +375,16 @@ class AuthController extends Controller
         );
 
         if (! $response->successful()) {
+            Log::warning('Google login failed: Identity Toolkit rejected the token', [
+                'status' => $response->status(),
+                'error' => $response->json('error.message'),
+            ]);
             return null;
         }
 
         $account = $response->json('users.0');
         if (! $account || empty($account['email']) || ! ($account['emailVerified'] ?? false)) {
+            Log::warning('Google login failed: account missing or email not verified');
             return null;
         }
 
